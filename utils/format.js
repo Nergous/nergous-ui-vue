@@ -1,7 +1,7 @@
-// format.js — locale-agnostic formatting helpers for the nergous-cit-ui-vue DS.
+// format.js — locale-agnostic formatting helpers for the nergous-ui-vue DS.
 // Pure Intl, with no hardcoded language or strings: the host app passes the active locale.
 // Usage:
-//   import { createFormat } from "@/lib/nergous-cit-ui-vue";
+//   import { createFormat } from "@/lib/nergous-ui-vue";
 //   const { formatDateTime } = createFormat("ru-RU");
 const EMPTY = "—";
 

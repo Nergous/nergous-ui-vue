@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the nergous-cit-ui-vue design system are documented here.
+All notable changes to the nergous-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
 ## v1.0.2 — 2026-09-15
@@ -46,7 +46,7 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 Initial release as a standalone repository (snapshot-distribution model).
 
-First public cut of the nergous-cit-ui-vue Vue 3 design system, extracted from the
+First public cut of the nergous-ui-vue Vue 3 design system, extracted from the
 `laravel-template-admin` project:
 
 - Themeable & density-aware design tokens (`styles/tokens.css`).

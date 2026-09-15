@@ -1,5 +1,5 @@
 /* ============================================================
-   nergous-cit-ui-vue Design System — Tokens & base
+   nergous-ui-vue Design System — Tokens & base
    Imported automatically by src/index.js.
    Switch themes with  <html data-theme="dark">
    Switch density with <html data-density="compact|comfortable|spacious">
@@ -211,13 +211,13 @@
 }
 
 /* Optional base reset — safe to remove if it clashes with your app */
-.nergous-cit-ui-vue-reset,
-.nergous-cit-ui-vue-reset *,
+.nergous-ui-vue-reset,
+.nergous-ui-vue-reset *,
 .nergouscit-reset,
 .nergouscit-reset * {
     box-sizing: border-box;
 }
-.nergous-cit-ui-vue-reset,
+.nergous-ui-vue-reset,
 .nergouscit-reset {
     margin: 0;
     font-family: var(--font-sans);

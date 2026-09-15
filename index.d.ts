@@ -457,8 +457,8 @@ export declare const NAnchoredForm: UIComponent<
     }
 >;
 
-export declare const THEME_STORAGE_KEY: "nergous-cit-ui-vue-theme";
-export declare const DENSITY_STORAGE_KEY: "nergous-cit-ui-vue-density";
+export declare const THEME_STORAGE_KEY: "nergous-ui-vue-theme";
+export declare const DENSITY_STORAGE_KEY: "nergous-ui-vue-density";
 export declare function useTheme(): {
     theme: Ref<Theme>;
     density: Ref<Density>;

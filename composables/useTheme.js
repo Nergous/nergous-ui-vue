@@ -4,13 +4,13 @@
 // Blade contract (anti-flash): before CSS loads, the host app must read these same
 // localStorage keys and set the matching data-attributes on <html>, so the page
 // never flashes the wrong theme on first paint:
-//   data-theme   <- THEME_STORAGE_KEY    ("nergous-cit-ui-vue-theme")
-//   data-density <- DENSITY_STORAGE_KEY  ("nergous-cit-ui-vue-density")
+//   data-theme   <- THEME_STORAGE_KEY    ("nergous-ui-vue-theme")
+//   data-density <- DENSITY_STORAGE_KEY  ("nergous-ui-vue-density")
 import { ref, watch } from "vue";
 
 // localStorage keys — exported so the host app's anti-flash script can reuse them.
-export const THEME_STORAGE_KEY = "nergous-cit-ui-vue-theme";
-export const DENSITY_STORAGE_KEY = "nergous-cit-ui-vue-density";
+export const THEME_STORAGE_KEY = "nergous-ui-vue-theme";
+export const DENSITY_STORAGE_KEY = "nergous-ui-vue-density";
 
 // Read a persisted value, falling back to a default (safe in private mode / SSR).
 const themes = ["light", "dark"];

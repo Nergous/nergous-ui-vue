@@ -8,7 +8,7 @@ import {
     useTheme,
     useToast,
     createFormat,
-} from "nergous-cit-ui-vue";
+} from "nergous-ui-vue";
 const button: InstanceType<typeof NButton>["$props"] = {
     variant: "primary",
     loading: true,

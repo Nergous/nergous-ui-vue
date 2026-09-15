@@ -123,7 +123,7 @@ const post = reactive({
     body: "## Что нового\n\nПереработали панель на единой дизайн-системе.",
     category: "product",
     tags: "запуск, платформа",
-    metaTitle: "Запуск платформы 2.0 — nergous-cit-ui-vue",
+    metaTitle: "Запуск платформы 2.0 — nergous-ui-vue",
     metaDesc: "Переработанная панель на единой дизайн-системе.",
     status: "scheduled",
     indexable: true,
@@ -131,13 +131,13 @@ const post = reactive({
 </script>
 
 <template>
-    <div class="nergous-cit-ui-vue-reset demo">
+    <div class="nergous-ui-vue-reset demo">
         <NToaster region-label="Уведомления" dismiss-label="Закрыть" />
 
         <header class="demo__top">
             <div class="demo__brand">
                 <div class="demo__logo">C</div>
-                <b>nergous-cit-ui-vue</b><NBadge tone="accent" pill>Vue 3</NBadge>
+                <b>nergous-ui-vue</b><NBadge tone="accent" pill>Vue 3</NBadge>
             </div>
             <NButton
                 variant="secondary"
@@ -551,7 +551,7 @@ const post = reactive({
             <div class="demo__col">
                 <NAvatar name="Анна Кириллова" :size="52" />
                 <NInput :model-value="'Анна Кириллова'" />
-                <NInput :model-value="'anna@nergous-cit-ui-vue.app'" />
+                <NInput :model-value="'anna@nergous-ui-vue.app'" />
             </div>
             <template #footer="{ close }">
                 <NButton variant="secondary" block @click="close"

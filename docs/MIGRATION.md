@@ -8,14 +8,14 @@ version until the maintainer chooses a release version and publishes/tags it.
    against the canonical library. Do not blindly overwrite/delete the snapshot.
 2. Pack the approved canonical revision, install its local tarball (or an explicit
    published version) in the consumer, and commit its package/lockfile changes.
-3. Replace imports from the vendored barrel with `nergous-cit-ui-vue`. Remove
+3. Replace imports from the vendored barrel with `nergous-ui-vue`. Remove
    obsolete ds:pull only when that consumer's migration is complete.
-4. Use the package's named exports and optional `nergous-cit-ui-vue/styles` export.
+4. Use the package's named exports and optional `nergous-ui-vue/styles` export.
    Raw component deep imports are not public package entry points.
-5. Use `nergous-cit-ui-vue-reset` on body if the reset is desired. The older
+5. Use `nergous-ui-vue-reset` on body if the reset is desired. The older
    `nergouscit-reset` selector is retained as a compatibility alias.
 6. Update the early HTML/Blade anti-flash script using the guarded/validated example
-   in README. New keys: nergous-cit-ui-vue-theme and nergous-cit-ui-vue-density.
+   in README. New keys: nergous-ui-vue-theme and nergous-ui-vue-density.
    Legacy nergouscit-theme/density values are read if new keys are absent; old keys
    are not deleted. The canonical constants remain exported.
 7. Verify forms, popups, keyboard focus, themes/densities and mobile layout in the

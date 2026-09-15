@@ -10,7 +10,7 @@
 //   showSub — toggle the name/sub block (hide for icon-only rails)
 defineProps({
     glyph: { type: String, default: "N" },
-    name: { type: String, default: "nergous-cit-ui-vue" },
+    name: { type: String, default: "nergous-ui-vue" },
     sub: { type: String, default: "" },
     size: {
         type: String,

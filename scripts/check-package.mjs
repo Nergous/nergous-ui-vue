@@ -70,11 +70,11 @@ run(
 );
 fs.writeFileSync(
     path.join(host, "index.html"),
-    '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Package smoke</title></head><body class="nergous-cit-ui-vue-reset"><div id="app"></div><script type="module" src="/main.js"></script></body></html>',
+    '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Package smoke</title></head><body class="nergous-ui-vue-reset"><div id="app"></div><script type="module" src="/main.js"></script></body></html>',
 );
 fs.writeFileSync(
     path.join(host, "main.js"),
-    'import {createApp,h} from "vue"; import * as ds from "nergous-cit-ui-vue"; import "nergous-cit-ui-vue/styles"; window.packageExports=Object.keys(ds); createApp({render:()=>h(ds.NButton,null,()=> "Archive works")}).mount("#app");',
+    'import {createApp,h} from "vue"; import * as ds from "nergous-ui-vue"; import "nergous-ui-vue/styles"; window.packageExports=Object.keys(ds); createApp({render:()=>h(ds.NButton,null,()=> "Archive works")}).mount("#app");',
 );
 fs.copyFileSync(
     path.join(root, "tests/types/contract.ts"),

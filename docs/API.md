@@ -1,6 +1,6 @@
 # Public API and behavior contracts
 
-Import only from `nergous-cit-ui-vue` (or the existing vendored barrel). Internal
+Import only from `nergous-ui-vue` (or the existing vendored barrel). Internal
 component paths and composables are not supported package subpaths. All 41
 component props and event/slot payloads are declared in `../index.d.ts`; the
 README lists component purposes. Components are named imports, not an app plugin.

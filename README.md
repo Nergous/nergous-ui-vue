@@ -1,6 +1,6 @@
-# nergous-cit-ui-vue — Vue 3
+# nergous-ui-vue — Vue 3
 
-Token-driven component library for the nergous-cit-ui-vue design system. Light/dark
+Token-driven component library for the nergous-ui-vue design system. Light/dark
 themes, three density levels, keyboard and accessibility support. Zero runtime dependencies
 beyond Vue 3.
 
@@ -27,9 +27,9 @@ After a registry release, install an explicit published version and commit the
 consumer lockfile. No automatic publishing is configured; packing is not publishing.
 
 ```js
-import { NButton, NModal, useTheme } from 'nergous-cit-ui-vue'
+import { NButton, NModal, useTheme } from 'nergous-ui-vue'
 // The entry imports tokens. An explicit stylesheet import is also available:
-import 'nergous-cit-ui-vue/styles'
+import 'nergous-ui-vue/styles'
 ```
 
 See [API contracts](docs/API.md), [migration](docs/MIGRATION.md), and
@@ -48,7 +48,7 @@ drops the contents into a target folder.
 
 ```bash
 # download / refresh the snapshot into your project
-npx tiged --mode=git --force Nergous/nergous-cit-ui-vue src/lib/nergous-cit-ui-vue
+npx tiged --mode=git --force Nergous/nergous-ui-vue src/lib/nergous-ui-vue
 ```
 
 `--mode=git` clones through your local git, so it works for both public and
@@ -60,15 +60,15 @@ Prefer a one-liner in your project's `package.json`:
 
 ```json
 "scripts": {
-  "ds:pull": "tiged --mode=git --force Nergous/nergous-cit-ui-vue src/lib/nergous-cit-ui-vue"
+  "ds:pull": "tiged --mode=git --force Nergous/nergous-ui-vue src/lib/nergous-ui-vue"
 }
 ```
 
 > No network / quick manual route: just copy this repo's contents into
-> `src/lib/nergous-cit-ui-vue` by hand. There is no build step.
+> `src/lib/nergous-ui-vue` by hand. There is no build step.
 
 To make imports short, add an alias to your bundler. With Vite, mapping `@` to
-your source root lets you write `@/lib/nergous-cit-ui-vue`:
+your source root lets you write `@/lib/nergous-ui-vue`:
 
 ```js
 // vite.config.js
@@ -81,8 +81,8 @@ export default {
 }
 ```
 
-All examples below use `@/lib/nergous-cit-ui-vue`. Adjust the path to wherever you
-vendored the folder (e.g. `./lib/nergous-cit-ui-vue`) if you skip the alias.
+All examples below use `@/lib/nergous-ui-vue`. Adjust the path to wherever you
+vendored the folder (e.g. `./lib/nergous-ui-vue`) if you skip the alias.
 
 ## Usage
 
@@ -92,20 +92,20 @@ page's real dependencies visible).
 
 ```vue
 <script setup>
-import { NButton, NBadge, useToast } from '@/lib/nergous-cit-ui-vue'
+import { NButton, NBadge, useToast } from '@/lib/nergous-ui-vue'
 const toast = useToast()
 </script>
 ```
 
 > The barrel (`index.js`) imports `styles/tokens.css` for you. If you import a
 > component while bypassing the barrel, pull in the tokens manually:
-> `import '@/lib/nergous-cit-ui-vue/styles/tokens.css'`.
+> `import '@/lib/nergous-ui-vue/styles/tokens.css'`.
 
 ## Themes and density
 
 ```vue
 <script setup>
-import { useTheme } from '@/lib/nergous-cit-ui-vue'
+import { useTheme } from '@/lib/nergous-ui-vue'
 const { theme, density, toggle, setTheme, setDensity } = useTheme()
 // theme   → ref('light' | 'dark')
 // density → ref('compact' | 'comfortable' | 'spacious')
@@ -134,9 +134,9 @@ HTML head, reading the same `localStorage` keys `useTheme` uses. Those keys are
 exported so you don't hardcode them:
 
 ```js
-import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from '@/lib/nergous-cit-ui-vue'
-// THEME_STORAGE_KEY   === 'nergous-cit-ui-vue-theme'
-// DENSITY_STORAGE_KEY === 'nergous-cit-ui-vue-density'
+import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from '@/lib/nergous-ui-vue'
+// THEME_STORAGE_KEY   === 'nergous-ui-vue-theme'
+// DENSITY_STORAGE_KEY === 'nergous-ui-vue-density'
 ```
 
 ```html
@@ -144,8 +144,8 @@ import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from '@/lib/nergous-cit-ui-vue
   var d = document.documentElement;
   var theme = 'light', density = 'comfortable';
   try {
-    theme = localStorage.getItem('nergous-cit-ui-vue-theme') ?? localStorage.getItem('nergouscit-theme') ?? theme;
-    density = localStorage.getItem('nergous-cit-ui-vue-density') ?? localStorage.getItem('nergouscit-density') ?? density;
+    theme = localStorage.getItem('nergous-ui-vue-theme') ?? localStorage.getItem('nergouscit-theme') ?? theme;
+    density = localStorage.getItem('nergous-ui-vue-density') ?? localStorage.getItem('nergouscit-density') ?? density;
   } catch (_) { /* Storage can be unavailable. */ }
   d.dataset.theme = ['light', 'dark'].includes(theme) ? theme : 'light';
   d.dataset.density = ['compact', 'comfortable', 'spacious'].includes(density) ? density : 'comfortable';
@@ -158,7 +158,7 @@ Render `<NToaster />` once near the app root, then push messages from anywhere:
 
 ```vue
 <script setup>
-import { useToast } from '@/lib/nergous-cit-ui-vue'
+import { useToast } from '@/lib/nergous-ui-vue'
 const toast = useToast()
 </script>
 
@@ -189,7 +189,7 @@ no hardcoded language; the host app passes the active BCP-47 locale:
 
 ```vue
 <script setup>
-import { createFormat } from '@/lib/nergous-cit-ui-vue'
+import { createFormat } from '@/lib/nergous-ui-vue'
 const { formatDateTime, formatDateShort, formatRelative, formatNumber } = createFormat('en-US')
 // formatDateTime('2025-03-12T10:00:00Z') → "03/12/2025, 10:00 AM"
 // formatDateShort(...) → "Mar 12, 2025" · formatRelative(...) → "2 minutes ago"
@@ -268,7 +268,7 @@ attributes on the scroll container's children.
 ```vue
 <script setup>
 import { ref } from 'vue'
-import { NCard, NBadge, NInput, NSegmented, NButton, NModal } from '@/lib/nergous-cit-ui-vue'
+import { NCard, NBadge, NInput, NSegmented, NButton, NModal } from '@/lib/nergous-ui-vue'
 
 const open = ref(false)
 const q = ref('')

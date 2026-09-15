@@ -261,8 +261,8 @@ test("theme validates storage and migrates legacy reads", async ({ page }) => {
         "compact",
     );
     await page.evaluate(() => {
-        localStorage.setItem("nergous-cit-ui-vue-theme", "invalid");
-        localStorage.setItem("nergous-cit-ui-vue-density", "invalid");
+        localStorage.setItem("nergous-ui-vue-theme", "invalid");
+        localStorage.setItem("nergous-ui-vue-density", "invalid");
     });
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");

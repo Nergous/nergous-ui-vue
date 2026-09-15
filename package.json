@@ -1,7 +1,7 @@
 {
-  "name": "nergous-cit-ui-vue",
+  "name": "nergous-ui-vue",
   "version": "1.0.2",
-  "description": "nergous-cit-ui-vue Design System — a zero-dependency Vue 3 component library: themeable & density-aware design tokens, 41 components, and composables.",
+  "description": "nergous-ui-vue Design System — a zero-dependency Vue 3 component library: themeable & density-aware design tokens, 41 components, and composables.",
   "type": "module",
   "main": "./index.js",
   "module": "./index.js",
@@ -41,11 +41,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Nergous/nergous-cit-ui-vue.git"
+    "url": "git+https://github.com/Nergous/nergous-ui-vue.git"
   },
-  "homepage": "https://github.com/Nergous/nergous-cit-ui-vue#readme",
+  "homepage": "https://github.com/Nergous/nergous-ui-vue#readme",
   "bugs": {
-    "url": "https://github.com/Nergous/nergous-cit-ui-vue/issues"
+    "url": "https://github.com/Nergous/nergous-ui-vue/issues"
   },
   "keywords": [
     "vue",
@@ -55,7 +55,7 @@
     "ui",
     "design-tokens",
     "composables",
-    "nergous-cit-ui-vue"
+    "nergous-ui-vue"
   ],
   "license": "MIT",
   "devDependencies": {
