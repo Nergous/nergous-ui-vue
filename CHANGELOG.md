@@ -3,7 +3,7 @@
 All notable changes to the nergous-cit-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## v1.0.2 — 2026-09-15
 
 ### Production stabilization — 2026-09-15
 
@@ -17,9 +17,9 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 - Enforce dropzone type/count, fit mobile toasts, honor scroll offset and return
   an em dash for empty/invalid number input. Improve error-text contrast.
 - Add TypeScript contracts, isolated browser/axe regressions, SFC/export checks,
-  offline archive consumer smoke and CI, with no new runtime dependency.
-- Document package installation, API, migration and release checks. These changes
-  are unreleased; no registry publication or consumer synchronization performed.
+  cache-first archive consumer smoke and CI, with no new runtime dependency.
+- Document package installation, API, migration and release checks. No registry
+  publication or consumer synchronization is performed by this GitHub release.
 
 ### Fixed
 
