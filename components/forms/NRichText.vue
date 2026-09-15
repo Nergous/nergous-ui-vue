@@ -34,7 +34,9 @@ import NIcon from "../primitives/NIcon.vue";
 import NModal from "../overlays/NModal.vue";
 import NInput from "./NInput.vue";
 import NButton from "./NButton.vue";
+import NFormField from "./NFormField.vue";
 import { useFormField } from "../../composables/useFormField.js";
+import { sanitizeHtml, safeUrl } from "../../utils/sanitize.js";
 
 const props = defineProps({
     modelValue: { type: String, default: "" },
@@ -192,7 +194,7 @@ function restoreRange() {
     sel.addRange(savedRange);
 }
 
-const isSafeUrl = (url) => !/^\s*javascript:/i.test(url);
+const isSafeUrl = (url) => !!safeUrl(url);
 function escapeAttr(s) {
     return s.replace(
         /[&<>"]/g,
@@ -203,6 +205,8 @@ function escapeAttr(s) {
 // Open the link modal: remember the selection; if the caret sits in a link, edit
 // it (select the whole anchor and prefill its href) instead of making a new one.
 function openLinkModal() {
+    editable.value?.focus();
+    restoreRange();
     saveRange();
     const sel = document.getSelection();
     const node = sel && sel.anchorNode;
@@ -296,6 +300,7 @@ function run(tool) {
         return;
     }
     editable.value.focus();
+    restoreRange();
     if (tool.cmd) exec(tool.cmd);
     else if (tool.block) toggleBlock(tool.block);
     else if (tool.action === "code") wrapCode();
@@ -338,88 +343,56 @@ function updateActive() {
 
 // --- paste sanitisation -------------------------------------------------------
 
-const ALLOWED = {
-    B: [],
-    STRONG: [],
-    I: [],
-    EM: [],
-    S: [],
-    STRIKE: [],
-    U: [],
-    H2: [],
-    H3: [],
-    P: [],
-    BR: [],
-    SPAN: [],
-    UL: [],
-    OL: [],
-    LI: [],
-    BLOCKQUOTE: [],
-    CODE: [],
-    PRE: [],
-    A: ["href"],
-};
-// Dangerous elements are dropped whole; unknown ones are unwrapped (text kept).
-const DROP = new Set([
-    "SCRIPT",
-    "STYLE",
-    "NOSCRIPT",
-    "IFRAME",
-    "OBJECT",
-    "EMBED",
-    "TEMPLATE",
-    "LINK",
-    "META",
-    "HEAD",
-]);
-
-function sanitizeHtml(html) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    // querySelectorAll is a static snapshot in document order (parents first),
-    // so unwrapped children are still visited afterwards.
-    doc.body.querySelectorAll("*").forEach((el) => {
-        const tag = el.tagName;
-        if (DROP.has(tag)) {
-            el.remove();
-            return;
-        }
-        const allowed = ALLOWED[tag];
-        if (!allowed) {
-            el.replaceWith(...el.childNodes); // unwrap, keep text
-            return;
-        }
-        [...el.attributes].forEach((a) => {
-            if (!allowed.includes(a.name.toLowerCase()))
-                el.removeAttribute(a.name);
-        });
-        if (tag === "A") {
-            const href = el.getAttribute("href") || "";
-            if (/^\s*(javascript|data):/i.test(href))
-                el.removeAttribute("href");
-            else el.setAttribute("rel", "noopener noreferrer");
-        }
-    });
-    return doc.body.innerHTML;
-}
-
 function onPaste(e) {
-    if (props.disabled) return;
     e.preventDefault();
+    if (props.disabled) return;
     const cb = e.clipboardData;
+    if (!cb) return;
     const html = cb.getData("text/html");
     if (html) exec("insertHTML", sanitizeHtml(html));
     else exec("insertText", cb.getData("text/plain"));
     sync();
 }
 
+function onDrop(e) {
+    e.preventDefault();
+    if (props.disabled || !e.dataTransfer) return;
+    editable.value.focus();
+    let range = document.caretRangeFromPoint?.(e.clientX, e.clientY);
+    if (!range && document.caretPositionFromPoint) {
+        const caret = document.caretPositionFromPoint(e.clientX, e.clientY);
+        if (caret) {
+            range = document.createRange();
+            range.setStart(caret.offsetNode, caret.offset);
+            range.collapse(true);
+        }
+    }
+    if (!range || !editable.value.contains(range.startContainer)) {
+        range = document.createRange();
+        range.selectNodeContents(editable.value);
+        range.collapse(false);
+    }
+    const selection = document.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    const html = e.dataTransfer.getData("text/html");
+    if (html) exec("insertHTML", sanitizeHtml(html));
+    else exec("insertText", e.dataTransfer.getData("text/plain"));
+    sync();
+}
+
 // --- lifecycle ----------------------------------------------------------------
 
 function onSelectionChange() {
-    if (!props.disabled) updateActive();
+    if (!props.disabled) {
+        const selection = document.getSelection();
+        if (editable.value?.contains(selection?.anchorNode)) saveRange();
+        updateActive();
+    }
 }
 
 onMounted(() => {
-    editable.value.innerHTML = props.modelValue || "";
+    editable.value.innerHTML = sanitizeHtml(props.modelValue);
     isEmpty.value = computeEmpty();
     document.addEventListener("selectionchange", onSelectionChange);
 });
@@ -435,7 +408,8 @@ watch(
     (val) => {
         const el = editable.value;
         if (el && val !== el.innerHTML) {
-            el.innerHTML = val || "";
+            el.innerHTML = sanitizeHtml(val);
+            savedRange = null;
             isEmpty.value = computeEmpty();
         }
     },
@@ -467,7 +441,8 @@ watch(
                     :aria-label="labels[tool.id]"
                     :aria-pressed="tool.key ? active[tool.key] : undefined"
                     :disabled="disabled"
-                    @mousedown.prevent="run(tool)"
+                    @mousedown.prevent
+                    @click="run(tool)"
                 >
                     <span v-if="tool.text">{{ tool.text }}</span>
                     <NIcon v-else :name="tool.icon" :size="16" />
@@ -489,6 +464,7 @@ watch(
             aria-multiline="true"
             @input="sync"
             @paste="onPaste"
+            @drop="onDrop"
             @keyup="updateActive"
             @mouseup="updateActive"
         />
@@ -500,13 +476,15 @@ watch(
             :close-label="labels.linkCancel"
         >
             <div ref="linkBody" class="n-rte__link-body">
-                <label class="n-rte__link-label">{{ labels.linkPrompt }}</label>
-                <NInput
-                    v-model="linkUrl"
-                    type="url"
-                    placeholder="https://"
-                    @keydown.enter.prevent="confirmLink"
-                />
+                <NFormField tag="div" :label="labels.linkPrompt">
+                    <NInput
+                        v-model="linkUrl"
+                        type="url"
+                        :aria-label="labels.linkPrompt"
+                        placeholder="https://"
+                        @keydown.enter.prevent="confirmLink"
+                    />
+                </NFormField>
             </div>
             <template #footer="{ close }">
                 <NButton

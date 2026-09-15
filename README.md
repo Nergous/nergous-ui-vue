@@ -1,7 +1,7 @@
-# nergous-cit UI — Vue 3
+# nergous-cit-ui-vue — Vue 3
 
-Token-driven component library for the nergous-cit design system. Light/dark
-themes, three density levels, accessibility out of the box. Zero dependencies
+Token-driven component library for the nergous-cit-ui-vue design system. Light/dark
+themes, three density levels, keyboard and accessibility support. Zero runtime dependencies
 beyond Vue 3.
 
 This folder is self-contained: components, composables, formatting helpers,
@@ -15,11 +15,32 @@ project and import from the barrel.
 - A bundler that understands `.vue` single-file components and `.css` imports
   (Vite, Rollup, webpack, …). Vite is the reference setup.
 
-## Install
+## Install as a versioned source package
 
-The library ships as plain source and is consumed as a **vendored snapshot** —
-you copy the source into your project and import it directly, you don't
-`npm install` it. The folder stays editable in place.
+The package ships Vue SFC source, CSS, fonts and TypeScript declarations; a
+generated bundle is not required. Consumers need Vue 3.5+ and a Vue bundler plugin.
+There is no dependency on Laravel, Inertia, Vue Router or a Go API.
+
+For a local/unpublished release, run `npm pack --ignore-scripts` here and install
+the resulting archive with `npm install /path/to/package.tgz` in each consumer.
+After a registry release, install an explicit published version and commit the
+consumer lockfile. No automatic publishing is configured; packing is not publishing.
+
+```js
+import { NButton, NModal, useTheme } from 'nergous-cit-ui-vue'
+// The entry imports tokens. An explicit stylesheet import is also available:
+import 'nergous-cit-ui-vue/styles'
+```
+
+See [API contracts](docs/API.md), [migration](docs/MIGRATION.md), and
+[development/release checks](docs/DEVELOPMENT.md). `index.d.ts` covers all public
+components, events, scoped slots and composables.
+
+### Legacy vendored snapshots
+
+Copying a **vendored snapshot** remains supported for existing projects. The folder
+stays editable in place, but updates overwrite local modifications. New integrations
+should use the package dependency described above.
 
 The convenient way to pull (or later update) a snapshot is [`tiged`](https://github.com/tiged/tiged)
 (a maintained `degit` fork): it shallow-clones this repo, strips the `.git`, and
@@ -27,7 +48,7 @@ drops the contents into a target folder.
 
 ```bash
 # download / refresh the snapshot into your project
-npx tiged --mode=git --force Nergous/nergous-cit src/lib/nergous-cit
+npx tiged --mode=git --force Nergous/nergous-cit-ui-vue src/lib/nergous-cit-ui-vue
 ```
 
 `--mode=git` clones through your local git, so it works for both public and
@@ -39,15 +60,15 @@ Prefer a one-liner in your project's `package.json`:
 
 ```json
 "scripts": {
-  "ds:pull": "tiged --mode=git --force Nergous/nergous-cit src/lib/nergous-cit"
+  "ds:pull": "tiged --mode=git --force Nergous/nergous-cit-ui-vue src/lib/nergous-cit-ui-vue"
 }
 ```
 
 > No network / quick manual route: just copy this repo's contents into
-> `src/lib/nergous-cit` by hand. There is no build step.
+> `src/lib/nergous-cit-ui-vue` by hand. There is no build step.
 
 To make imports short, add an alias to your bundler. With Vite, mapping `@` to
-your source root lets you write `@/lib/nergous-cit`:
+your source root lets you write `@/lib/nergous-cit-ui-vue`:
 
 ```js
 // vite.config.js
@@ -60,8 +81,8 @@ export default {
 }
 ```
 
-All examples below use `@/lib/nergous-cit`. Adjust the path to wherever you
-vendored the folder (e.g. `./lib/nergous-cit`) if you skip the alias.
+All examples below use `@/lib/nergous-cit-ui-vue`. Adjust the path to wherever you
+vendored the folder (e.g. `./lib/nergous-cit-ui-vue`) if you skip the alias.
 
 ## Usage
 
@@ -71,20 +92,20 @@ page's real dependencies visible).
 
 ```vue
 <script setup>
-import { NButton, NBadge, useToast } from '@/lib/nergous-cit'
+import { NButton, NBadge, useToast } from '@/lib/nergous-cit-ui-vue'
 const toast = useToast()
 </script>
 ```
 
 > The barrel (`index.js`) imports `styles/tokens.css` for you. If you import a
 > component while bypassing the barrel, pull in the tokens manually:
-> `import '@/lib/nergous-cit/styles/tokens.css'`.
+> `import '@/lib/nergous-cit-ui-vue/styles/tokens.css'`.
 
 ## Themes and density
 
 ```vue
 <script setup>
-import { useTheme } from '@/lib/nergous-cit'
+import { useTheme } from '@/lib/nergous-cit-ui-vue'
 const { theme, density, toggle, setTheme, setDensity } = useTheme()
 // theme   → ref('light' | 'dark')
 // density → ref('compact' | 'comfortable' | 'spacious')
@@ -113,16 +134,21 @@ HTML head, reading the same `localStorage` keys `useTheme` uses. Those keys are
 exported so you don't hardcode them:
 
 ```js
-import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from '@/lib/nergous-cit'
-// THEME_STORAGE_KEY   === 'nergouscit-theme'
-// DENSITY_STORAGE_KEY === 'nergouscit-density'
+import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from '@/lib/nergous-cit-ui-vue'
+// THEME_STORAGE_KEY   === 'nergous-cit-ui-vue-theme'
+// DENSITY_STORAGE_KEY === 'nergous-cit-ui-vue-density'
 ```
 
 ```html
 <script>
   var d = document.documentElement;
-  d.dataset.theme = localStorage.getItem('nergouscit-theme') || 'light';
-  d.dataset.density = localStorage.getItem('nergouscit-density') || 'comfortable';
+  var theme = 'light', density = 'comfortable';
+  try {
+    theme = localStorage.getItem('nergous-cit-ui-vue-theme') ?? localStorage.getItem('nergouscit-theme') ?? theme;
+    density = localStorage.getItem('nergous-cit-ui-vue-density') ?? localStorage.getItem('nergouscit-density') ?? density;
+  } catch (_) { /* Storage can be unavailable. */ }
+  d.dataset.theme = ['light', 'dark'].includes(theme) ? theme : 'light';
+  d.dataset.density = ['compact', 'comfortable', 'spacious'].includes(density) ? density : 'comfortable';
 </script>
 ```
 
@@ -132,7 +158,7 @@ Render `<NToaster />` once near the app root, then push messages from anywhere:
 
 ```vue
 <script setup>
-import { useToast } from '@/lib/nergous-cit'
+import { useToast } from '@/lib/nergous-cit-ui-vue'
 const toast = useToast()
 </script>
 
@@ -163,7 +189,7 @@ no hardcoded language; the host app passes the active BCP-47 locale:
 
 ```vue
 <script setup>
-import { createFormat } from '@/lib/nergous-cit'
+import { createFormat } from '@/lib/nergous-cit-ui-vue'
 const { formatDateTime, formatDateShort, formatRelative, formatNumber } = createFormat('en-US')
 // formatDateTime('2025-03-12T10:00:00Z') → "03/12/2025, 10:00 AM"
 // formatDateShort(...) → "Mar 12, 2025" · formatRelative(...) → "2 minutes ago"
@@ -183,7 +209,7 @@ also exported standalone from the barrel.
 | `NFormField` | Field wrapper: label + control + error/hint | `label`, `error`, `hint`, `required`, `tag` (`label`/`div`), `labelId`; passes an a11y contract to the nested control via `useFormField` (provide/inject — `aria-describedby`/`aria-invalid`/`aria-required`) |
 | `NInput` | Text input | `v-model`, `type`, `icon`, `error`, `placeholder` |
 | `NSelect` | Themed listbox (replaces native `<select>`) | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `error` |
-| `NSelectWithSearch` | Searchable single-select listbox | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `searchPlaceholder`, `noResultsText`, `error` |
+| `NSelectWithSearch` | Searchable single-select listbox; English search/empty defaults | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `searchPlaceholder`, `noResultsText`, `error` |
 | `NTextarea` | Multi-line input | `v-model`, `rows` |
 | `NRichText` | Mini WYSIWYG on `contenteditable` | `v-model` (HTML string), `placeholder`, `error`, `disabled`, `labels` (toolbar captions), `tools` (limit the button set). With `NFormField` use `tag="div"` |
 | `NSwitch` | Toggle | `v-model` (Boolean) |
@@ -242,7 +268,7 @@ attributes on the scroll container's children.
 ```vue
 <script setup>
 import { ref } from 'vue'
-import { NCard, NBadge, NInput, NSegmented, NButton, NModal } from '@/lib/nergous-cit'
+import { NCard, NBadge, NInput, NSegmented, NButton, NModal } from '@/lib/nergous-cit-ui-vue'
 
 const open = ref(false)
 const q = ref('')
@@ -283,6 +309,19 @@ inside the system; they react to the active theme and density for free:
   padding: var(--sp-4);
 }
 ```
+
+## Selects inside forms and dialogs
+
+Use the `options` prop and `v-model`; native `<option>` children are not supported.
+Option clicks suppress the wrapping label's default activation so picking an option
+closes the list without reopening it. Popups are teleported outside scrolling bodies,
+within their owning overlay when one exists. Escape closes an open select before
+dismissing the dialog. Style component classes, not consumer ancestor selectors.
+
+`NSelectWithSearch` defaults to `searchPlaceholder="Search…"` and
+`noResultsText="No results"`. Pass localized strings at the call site.
+`NDataTable` accepts `rowClass(row)` for consumer-defined row highlighting;
+`NToaster` centers single-line notifications vertically.
 
 ## Demos
 

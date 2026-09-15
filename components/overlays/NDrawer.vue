@@ -12,6 +12,7 @@ import { useInert } from "../../composables/useInert.js";
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
     title: { type: String, default: "" },
+    dialogLabel: { type: String, default: "Panel" },
     subtitle: { type: String, default: "" },
     width: { type: String, default: "440px" },
     closeLabel: { type: String, default: "Close" },
@@ -23,10 +24,11 @@ function close() {
 }
 
 const dialogEl = ref(null);
+const overlayEl = ref(null);
 const titleId = useId();
 const subId = useId();
 // Before useFocusTrap so inert is released before focus returns to the trigger.
-useInert(() => props.modelValue);
+const { layer } = useInert(() => props.modelValue, [overlayEl, dialogEl]);
 useFocusTrap(dialogEl, () => props.modelValue);
 useScrollLock(() => props.modelValue);
 // Escape closes only the topmost overlay (shared dismiss stack), not the whole stack.
@@ -39,6 +41,8 @@ useDismiss(() => props.modelValue, close);
             <div
                 v-if="modelValue"
                 class="n-drawer__overlay"
+                ref="overlayEl"
+                :style="{ zIndex: layer }"
                 data-overlay
                 @click.self="close"
             />
@@ -52,8 +56,9 @@ useDismiss(() => props.modelValue, close);
                 role="dialog"
                 aria-modal="true"
                 :aria-labelledby="title ? titleId : undefined"
+                :aria-label="title ? undefined : dialogLabel"
                 :aria-describedby="subtitle ? subId : undefined"
-                :style="{ width: 'min(' + width + ', 92%)' }"
+                :style="{ width: 'min(' + width + ', 92%)', zIndex: layer + 1 }"
             >
                 <div class="n-drawer__head">
                     <div class="n-drawer__heading">

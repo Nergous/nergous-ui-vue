@@ -9,7 +9,7 @@ import NIcon from "../primitives/NIcon.vue";
 // The root is a <label> wrapping a visually-hidden but focusable file input, so
 // the whole area is clickable AND keyboard-operable (Tab to focus, Enter/Space
 // to open the dialog) — no manual click forwarding needed.
-defineProps({
+const props = defineProps({
     accept: { type: String, default: "" },
     multiple: { type: Boolean, default: true },
     title: { type: String, default: "Drop files here" },
@@ -20,10 +20,30 @@ defineProps({
 const emit = defineEmits(["files"]);
 
 const over = ref(false);
+function accepted(files) {
+    const rules = props.accept
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+    const matching = files.filter(
+        (file) =>
+            !rules.length ||
+            rules.some((rule) => {
+                if (rule.startsWith("."))
+                    return file.name.toLowerCase().endsWith(rule);
+                if (rule.endsWith("/*"))
+                    return file.type
+                        .toLowerCase()
+                        .startsWith(rule.slice(0, -1));
+                return file.type.toLowerCase() === rule;
+            }),
+    );
+    return props.multiple ? matching : matching.slice(0, 1);
+}
 
 function onDrop(e) {
     over.value = false;
-    const files = Array.from(e.dataTransfer?.files || []);
+    const files = accepted(Array.from(e.dataTransfer?.files || []));
     if (files.length) emit("files", files);
 }
 // dragleave bubbles when moving onto child elements; only clear the highlight
@@ -32,7 +52,7 @@ function onDragLeave(e) {
     if (!e.currentTarget.contains(e.relatedTarget)) over.value = false;
 }
 function onPick(e) {
-    const files = Array.from(e.target.files || []);
+    const files = accepted(Array.from(e.target.files || []));
     if (files.length) emit("files", files);
     e.target.value = "";
 }

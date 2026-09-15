@@ -10,6 +10,8 @@ import {
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFormField } from "../../composables/useFormField.js";
+import { useFloating } from "../../composables/useFloating.js";
+import { focusableWithin } from "../../composables/useFocusTrap.js";
 
 // NSelectWithSearch — single-select listbox with a client-side search box.
 // Same value contract as NSelect (v-model + :options [{value,label,disabled?}]);
@@ -19,8 +21,8 @@ const props = defineProps({
     modelValue: { type: [String, Number], default: "" },
     options: { type: Array, default: () => [] },
     placeholder: { type: String, default: "Select…" },
-    searchPlaceholder: { type: String, default: "Поиск…" },
-    noResultsText: { type: String, default: "Ничего не найдено" },
+    searchPlaceholder: { type: String, default: "Search…" },
+    noResultsText: { type: String, default: "No results" },
     error: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
 });
@@ -35,6 +37,9 @@ const optId = (i) => `${sid}-opt-${i}`;
 
 const open = ref(false);
 const root = ref(null);
+const triggerEl = ref(null);
+const popup = ref(null);
+const floating = useFloating(root, popup, open);
 const searchEl = ref(null);
 const optionEls = ref([]);
 const activeIndex = ref(-1);
@@ -51,7 +56,9 @@ const displayLabel = computed(() =>
 const filtered = computed(() => {
     const q = query.value.trim().toLowerCase();
     if (!q) return props.options;
-    return props.options.filter((o) => String(o.label).toLowerCase().includes(q));
+    return props.options.filter((o) =>
+        String(o.label).toLowerCase().includes(q),
+    );
 });
 
 const setOptionRef = (i) => (el) => {
@@ -95,9 +102,10 @@ function openMenu() {
     });
 }
 
-function closeMenu() {
+function closeMenu(returnFocus = false) {
     open.value = false;
     activeIndex.value = -1;
+    if (returnFocus) triggerEl.value?.focus();
 }
 
 function toggle() {
@@ -114,9 +122,9 @@ function move(dir) {
 }
 
 function selectOption(opt) {
-    if (!opt || opt.disabled) return;
+    if (props.disabled || !opt || opt.disabled) return;
     if (opt.value !== props.modelValue) emit("update:modelValue", opt.value);
-    closeMenu();
+    closeMenu(true);
 }
 
 function onOptionHover(i, opt) {
@@ -163,11 +171,27 @@ function onKeydown(e) {
         case "Escape":
             if (open.value) {
                 e.preventDefault();
-                closeMenu();
+                closeMenu(true);
             }
             break;
         case "Tab":
-            if (open.value) closeMenu();
+            if (open.value) {
+                const owner = triggerEl.value?.closest("[data-overlay]");
+                if (owner) {
+                    e.preventDefault();
+                    const items = focusableWithin(owner).filter(
+                        (el) => !popup.value?.contains(el),
+                    );
+                    const index = items.indexOf(triggerEl.value);
+                    const next =
+                        items[
+                            (index + (e.shiftKey ? -1 : 1) + items.length) %
+                                items.length
+                        ];
+                    closeMenu();
+                    next?.focus();
+                } else closeMenu(true);
+            }
             break;
     }
 }
@@ -183,21 +207,41 @@ function onTriggerKeydown(e) {
 }
 
 function onDocClick(e) {
-    if (root.value && !root.value.contains(e.target)) closeMenu();
+    if (
+        root.value &&
+        !root.value.contains(e.target) &&
+        !popup.value?.contains(e.target)
+    )
+        closeMenu();
 }
 onMounted(() => document.addEventListener("click", onDocClick));
 onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
+watch(
+    () => props.disabled,
+    (disabled) => {
+        if (disabled) closeMenu();
+    },
+);
 </script>
 
 <template>
-    <div ref="root" class="n-selects" :class="{ open, disabled, error: invalid }">
+    <div
+        ref="root"
+        class="n-selects"
+        :class="{ open, disabled, error: invalid }"
+    >
         <button
+            ref="triggerEl"
             type="button"
             class="n-selects__control"
             :class="{ placeholder: !selected }"
             role="combobox"
             aria-haspopup="listbox"
             :aria-expanded="open"
+            :aria-invalid="invalid || undefined"
+            :aria-required="field?.required.value || undefined"
+            :aria-labelledby="field?.labelledby.value || undefined"
+            :aria-describedby="field?.describedBy.value || undefined"
             :aria-controls="listId"
             :disabled="disabled"
             @click="toggle"
@@ -207,55 +251,81 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
             <NIcon name="chevron-down" :size="16" class="n-selects__chev" />
         </button>
 
-        <Transition name="n-selects-pop">
-            <div v-if="open" class="n-selects__pop">
-                <div class="n-selects__search-wrap">
-                    <NIcon name="search" :size="15" class="n-selects__search-icon" />
-                    <input
-                        ref="searchEl"
-                        v-model="query"
-                        type="text"
-                        class="n-selects__search"
-                        :placeholder="searchPlaceholder"
-                        role="searchbox"
-                        :aria-controls="listId"
-                        autocomplete="off"
-                        @keydown="onKeydown"
-                    />
-                </div>
+        <Teleport :to="floating.target.value">
+            <Transition name="n-selects-pop">
+                <div
+                    v-if="open"
+                    ref="popup"
+                    :style="floating.style.value"
+                    class="n-selects__pop"
+                >
+                    <div class="n-selects__search-wrap">
+                        <NIcon
+                            name="search"
+                            :size="15"
+                            class="n-selects__search-icon"
+                        />
+                        <input
+                            ref="searchEl"
+                            v-model="query"
+                            type="text"
+                            class="n-selects__search"
+                            :placeholder="searchPlaceholder"
+                            role="combobox"
+                            aria-expanded="true"
+                            aria-autocomplete="list"
+                            :aria-label="searchPlaceholder"
+                            :aria-activedescendant="
+                                activeIndex >= 0
+                                    ? optId(activeIndex)
+                                    : undefined
+                            "
+                            :aria-controls="listId"
+                            autocomplete="off"
+                            @keydown="onKeydown"
+                        />
+                    </div>
 
-                <ul :id="listId" class="n-selects__list" role="listbox">
-                    <li
-                        v-for="(opt, i) in filtered"
-                        :key="opt.value"
-                        :id="optId(i)"
-                        :ref="setOptionRef(i)"
-                        class="n-selects__opt"
-                        :class="{
-                            active: i === activeIndex,
-                            selected: opt.value === modelValue,
-                            disabled: opt.disabled,
-                        }"
-                        role="option"
-                        :aria-selected="opt.value === modelValue"
-                        :aria-disabled="opt.disabled || undefined"
-                        @click="selectOption(opt)"
-                        @mousemove="onOptionHover(i, opt)"
+                    <ul
+                        :id="listId"
+                        class="n-selects__list"
+                        role="listbox"
+                        :aria-label="searchPlaceholder"
                     >
-                        <span class="n-selects__opt-label">{{ opt.label }}</span>
-                        <span
-                            v-if="opt.value === modelValue"
-                            class="n-selects__opt-check"
+                        <li
+                            v-for="(opt, i) in filtered"
+                            :key="opt.value"
+                            :id="optId(i)"
+                            :ref="setOptionRef(i)"
+                            class="n-selects__opt"
+                            :class="{
+                                active: i === activeIndex,
+                                selected: opt.value === modelValue,
+                                disabled: opt.disabled,
+                            }"
+                            role="option"
+                            :aria-selected="opt.value === modelValue"
+                            :aria-disabled="opt.disabled || undefined"
+                            @click.stop.prevent="selectOption(opt)"
+                            @mousemove="onOptionHover(i, opt)"
                         >
-                            <NIcon name="check" :size="11" />
-                        </span>
-                    </li>
-                    <li v-if="!filtered.length" class="n-selects__empty">
-                        {{ noResultsText }}
-                    </li>
-                </ul>
-            </div>
-        </Transition>
+                            <span class="n-selects__opt-label">{{
+                                opt.label
+                            }}</span>
+                            <span
+                                v-if="opt.value === modelValue"
+                                class="n-selects__opt-check"
+                            >
+                                <NIcon name="check" :size="11" />
+                            </span>
+                        </li>
+                        <li v-if="!filtered.length" class="n-selects__empty">
+                            {{ noResultsText }}
+                        </li>
+                    </ul>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
@@ -324,6 +394,9 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
 
 /* popup: search box + scrollable list, capped to the control width */
 .n-selects__pop {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
@@ -338,6 +411,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
     box-shadow: var(--shadow-lg);
 }
 .n-selects__search-wrap {
+    flex: none;
     position: relative;
     display: flex;
     align-items: center;
@@ -367,6 +441,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
     box-shadow: 0 0 0 2px var(--accent);
 }
 .n-selects__list {
+    min-height: 0;
     margin: 0;
     padding: 0;
     max-height: 240px;

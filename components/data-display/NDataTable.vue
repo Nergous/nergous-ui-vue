@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, getCurrentInstance } from "vue";
+import { ref, computed, getCurrentInstance, watch } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import NCheckbox from "../forms/NCheckbox.vue";
 import NPagination from "./NPagination.vue";
@@ -114,6 +114,9 @@ const paged = computed(() => {
         (p - 1) * props.pageSize,
         (p - 1) * props.pageSize + props.pageSize,
     );
+});
+watch(pages, (total) => {
+    page.value = Math.max(1, Math.min(page.value, total));
 });
 const rangeText = computed(() => {
     if (props.pageSize <= 0 || sorted.value.length === 0) return "";
@@ -252,10 +255,10 @@ const isSel = (r) => props.selected.includes(r[props.rowKey]);
                                 : undefined
                         "
                         @click="emit('row-click', row)"
-                        @keydown.enter.prevent="
+                        @keydown.enter.self.prevent="
                             rowInteractive && emit('row-click', row)
                         "
-                        @keydown.space.prevent="
+                        @keydown.space.self.prevent="
                             rowInteractive && emit('row-click', row)
                         "
                     >

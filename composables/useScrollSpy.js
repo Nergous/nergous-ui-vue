@@ -52,7 +52,7 @@ export function useScrollSpy(container, options = {}) {
             "(prefers-reduced-motion: reduce)",
         ).matches;
         c.scrollTo({
-            top: Math.max(0, el.offsetTop - 10),
+            top: Math.max(0, el.offsetTop - getOffset()),
             behavior: reduce ? "auto" : "smooth",
         });
     }

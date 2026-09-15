@@ -1,6 +1,10 @@
 # Dependencies (none today — the library is zero-build source; kept for future tooling/playground)
 node_modules/
 dist/
+.workflow/
+.test-output/
+test-results/
+playwright-report/
 
 # OS / editor
 .DS_Store

@@ -123,7 +123,7 @@ const post = reactive({
     body: "## Что нового\n\nПереработали панель на единой дизайн-системе.",
     category: "product",
     tags: "запуск, платформа",
-    metaTitle: "Запуск платформы 2.0 — nergous-cit",
+    metaTitle: "Запуск платформы 2.0 — nergous-cit-ui-vue",
     metaDesc: "Переработанная панель на единой дизайн-системе.",
     status: "scheduled",
     indexable: true,
@@ -131,13 +131,13 @@ const post = reactive({
 </script>
 
 <template>
-    <div class="nergouscit-reset demo">
+    <div class="nergous-cit-ui-vue-reset demo">
         <NToaster region-label="Уведомления" dismiss-label="Закрыть" />
 
         <header class="demo__top">
             <div class="demo__brand">
                 <div class="demo__logo">C</div>
-                <b>nergous-cit UI</b><NBadge tone="accent" pill>Vue 3</NBadge>
+                <b>nergous-cit-ui-vue</b><NBadge tone="accent" pill>Vue 3</NBadge>
             </div>
             <NButton
                 variant="secondary"
@@ -335,7 +335,10 @@ const post = reactive({
                         <template v-else-if="step.value === 'taxonomy'">
                             <label class="demo__field"
                                 ><span>Категория</span>
-                                <NSelect v-model="post.category" :options="categoryOpts" />
+                                <NSelect
+                                    v-model="post.category"
+                                    :options="categoryOpts"
+                                />
                             </label>
                             <label class="demo__field"
                                 ><span>Теги</span><NInput v-model="post.tags"
@@ -448,7 +451,10 @@ const post = reactive({
                     <div class="demo__col">
                         <label class="demo__field"
                             ><span>Категория</span>
-                            <NSelect v-model="post.category" :options="categoryOpts" />
+                            <NSelect
+                                v-model="post.category"
+                                :options="categoryOpts"
+                            />
                         </label>
                         <label class="demo__field"
                             ><span>Теги</span><NInput v-model="post.tags"
@@ -545,7 +551,7 @@ const post = reactive({
             <div class="demo__col">
                 <NAvatar name="Анна Кириллова" :size="52" />
                 <NInput :model-value="'Анна Кириллова'" />
-                <NInput :model-value="'anna@nergous-cit.app'" />
+                <NInput :model-value="'anna@nergous-cit-ui-vue.app'" />
             </div>
             <template #footer="{ close }">
                 <NButton variant="secondary" block @click="close"

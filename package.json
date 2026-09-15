@@ -1,33 +1,51 @@
 {
   "name": "nergous-cit-ui-vue",
   "version": "1.0.1",
-  "description": "nergous-cit Design System — a zero-dependency Vue 3 component library: themeable & density-aware design tokens, 41 components, and composables.",
+  "description": "nergous-cit-ui-vue Design System — a zero-dependency Vue 3 component library: themeable & density-aware design tokens, 41 components, and composables.",
   "type": "module",
   "main": "./index.js",
   "module": "./index.js",
+  "types": "./index.d.ts",
+  "scripts": {
+    "test": "npm run test:static && npm run test:types && npm run test:browser && npm run test:package",
+    "test:static": "node scripts/check-source.mjs",
+    "test:types": "tsc --noEmit -p tests/types/tsconfig.json",
+    "test:browser": "playwright test",
+    "test:package": "node scripts/check-package.mjs",
+    "dev": "vite --config tests/vite.config.js --host 127.0.0.1"
+  },
   "exports": {
-    ".": "./index.js",
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    },
     "./styles": "./styles/tokens.css"
   },
   "files": [
     "index.js",
+    "index.d.ts",
     "components",
     "composables",
     "utils",
     "styles",
     "fonts",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "docs/API.md",
+    "docs/MIGRATION.md",
+    "docs/DEVELOPMENT.md"
   ],
   "peerDependencies": {
     "vue": "^3.5.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Nergous/nergous-cit.git"
+    "url": "git+https://github.com/Nergous/nergous-cit-ui-vue.git"
   },
-  "homepage": "https://github.com/Nergous/nergous-cit#readme",
+  "homepage": "https://github.com/Nergous/nergous-cit-ui-vue#readme",
   "bugs": {
-    "url": "https://github.com/Nergous/nergous-cit/issues"
+    "url": "https://github.com/Nergous/nergous-cit-ui-vue/issues"
   },
   "keywords": [
     "vue",
@@ -37,7 +55,16 @@
     "ui",
     "design-tokens",
     "composables",
-    "nergous-cit"
+    "nergous-cit-ui-vue"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@vitejs/plugin-vue": "6.0.7",
+    "@vue/compiler-sfc": "3.5.39",
+    "axe-core": "4.13.0",
+    "typescript": "7.0.2",
+    "vite": "8.1.1",
+    "vue": "3.5.39"
+  }
 }

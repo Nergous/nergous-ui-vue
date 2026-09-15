@@ -6,9 +6,11 @@ import {
     onMounted,
     onBeforeUnmount,
     useId,
+    watch,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFormField } from "../../composables/useFormField.js";
+import { useFloating } from "../../composables/useFloating.js";
 
 // NSelect — custom listbox styled to the design system (replaces the native
 // <select> popup, which can't be themed cross-browser).
@@ -36,6 +38,8 @@ const optId = (i) => `${sid}-opt-${i}`;
 
 const open = ref(false);
 const root = ref(null);
+const popup = ref(null);
+const floating = useFloating(root, popup, open);
 const optionEls = ref([]);
 const activeIndex = ref(-1);
 
@@ -97,7 +101,7 @@ function move(dir) {
 }
 
 function selectOption(opt) {
-    if (!opt || opt.disabled) return;
+    if (props.disabled || !opt || opt.disabled) return;
     if (opt.value !== props.modelValue) emit("update:modelValue", opt.value);
     closeMenu();
 }
@@ -150,10 +154,30 @@ function onKeydown(e) {
 }
 
 function onDocClick(e) {
-    if (root.value && !root.value.contains(e.target)) closeMenu();
+    if (
+        root.value &&
+        !root.value.contains(e.target) &&
+        !popup.value?.contains(e.target)
+    )
+        closeMenu();
 }
 onMounted(() => document.addEventListener("click", onDocClick));
 onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
+watch(
+    () => props.disabled,
+    (disabled) => {
+        if (disabled) closeMenu();
+    },
+);
+watch(
+    () => props.options,
+    () => {
+        optionEls.value = [];
+        if (open.value)
+            activeIndex.value = props.options.findIndex((o) => !o.disabled);
+    },
+    { deep: true },
+);
 </script>
 
 <template>
@@ -185,35 +209,45 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
             <NIcon name="chevron-down" :size="16" class="n-select__chev" />
         </button>
 
-        <Transition name="n-select-pop">
-            <ul v-if="open" :id="listId" class="n-select__list" role="listbox">
-                <li
-                    v-for="(opt, i) in options"
-                    :key="opt.value"
-                    :id="optId(i)"
-                    :ref="setOptionRef(i)"
-                    class="n-select__opt"
-                    :class="{
-                        active: i === activeIndex,
-                        selected: opt.value === modelValue,
-                        disabled: opt.disabled,
-                    }"
-                    role="option"
-                    :aria-selected="opt.value === modelValue"
-                    :aria-disabled="opt.disabled || undefined"
-                    @click="selectOption(opt)"
-                    @mousemove="onOptionHover(i, opt)"
+        <Teleport :to="floating.target.value">
+            <Transition name="n-select-pop">
+                <ul
+                    v-if="open"
+                    ref="popup"
+                    :style="floating.style.value"
+                    :id="listId"
+                    class="n-select__list"
+                    role="listbox"
+                    :aria-label="displayLabel"
                 >
-                    <span class="n-select__opt-label">{{ opt.label }}</span>
-                    <span
-                        v-if="opt.value === modelValue"
-                        class="n-select__opt-check"
+                    <li
+                        v-for="(opt, i) in options"
+                        :key="opt.value"
+                        :id="optId(i)"
+                        :ref="setOptionRef(i)"
+                        class="n-select__opt"
+                        :class="{
+                            active: i === activeIndex,
+                            selected: opt.value === modelValue,
+                            disabled: opt.disabled,
+                        }"
+                        role="option"
+                        :aria-selected="opt.value === modelValue"
+                        :aria-disabled="opt.disabled || undefined"
+                        @click.stop.prevent="selectOption(opt)"
+                        @mousemove="onOptionHover(i, opt)"
                     >
-                        <NIcon name="check" :size="11" />
-                    </span>
-                </li>
-            </ul>
-        </Transition>
+                        <span class="n-select__opt-label">{{ opt.label }}</span>
+                        <span
+                            v-if="opt.value === modelValue"
+                            class="n-select__opt-check"
+                        >
+                            <NIcon name="check" :size="11" />
+                        </span>
+                    </li>
+                </ul>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 

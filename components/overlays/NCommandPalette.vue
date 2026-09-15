@@ -36,6 +36,7 @@ const query = ref("");
 const index = ref(0);
 const inputEl = ref(null);
 const dialogEl = ref(null);
+const overlayEl = ref(null);
 const baseId = useId();
 const listId = `${baseId}-list`;
 const optId = (i) => `${baseId}-opt-${i}`;
@@ -55,7 +56,7 @@ const activeOptionId = computed(() =>
 );
 
 // Before useFocusTrap so inert is released before focus returns to the trigger.
-useInert(() => props.modelValue);
+const { layer, isTop } = useInert(() => props.modelValue, [overlayEl]);
 useFocusTrap(dialogEl, () => props.modelValue);
 useScrollLock(() => props.modelValue);
 // Escape closes only the topmost overlay (shared dismiss stack), not the whole stack.
@@ -85,6 +86,16 @@ watch(query, (q) => {
     index.value = 0;
     emit("update:query", q);
 });
+watch(results, (items) => {
+    index.value = Math.max(0, Math.min(index.value, items.length - 1));
+});
+watch([index, results], () =>
+    nextTick(() => {
+        document
+            .getElementById(optId(index.value))
+            ?.scrollIntoView({ block: "nearest" });
+    }),
+);
 
 function onKey(e) {
     const k = (e.key || "").toLowerCase();
@@ -93,11 +104,14 @@ function onKey(e) {
         emit("update:modelValue", !props.modelValue);
         return;
     }
-    if (!props.modelValue) return;
+    if (!props.modelValue || !isTop()) return;
     // Escape is handled by useDismiss (topmost-overlay-only); arrows/Enter below.
     if (e.key === "ArrowDown") {
         e.preventDefault();
-        index.value = Math.min(index.value + 1, results.value.length - 1);
+        index.value = Math.max(
+            0,
+            Math.min(index.value + 1, results.value.length - 1),
+        );
     } else if (e.key === "ArrowUp") {
         e.preventDefault();
         index.value = Math.max(index.value - 1, 0);
@@ -116,6 +130,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
             <div
                 v-if="modelValue"
                 class="n-cmd__overlay"
+                ref="overlayEl"
+                :style="{ zIndex: layer }"
                 data-overlay
                 @click.self="close"
             >

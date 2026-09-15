@@ -1,6 +1,15 @@
 <script setup>
-import { ref, watch, nextTick, onBeforeUnmount, useId } from "vue";
+import {
+    ref,
+    watch,
+    nextTick,
+    onMounted,
+    onUpdated,
+    onBeforeUnmount,
+    useId,
+} from "vue";
 import NIcon from "../primitives/NIcon.vue";
+import { useFloating } from "../../composables/useFloating.js";
 
 // NDropdown — WAI-ARIA menu button. Trigger goes in the default slot (receives
 // { open }). Emits `select` with the chosen item; that item's action?.() also runs.
@@ -19,7 +28,33 @@ const emit = defineEmits(["select"]);
 const open = ref(false);
 const root = ref(null);
 const menuEl = ref(null);
+const floating = useFloating(root, menuEl, open, {
+    matchWidth: false,
+    align: () => props.align,
+});
 const menuId = useId();
+const triggerEl = ref(null);
+// Preserve the legacy slot API while placing state on its real interactive
+// control rather than an anonymous span (invalid ARIA for aria-expanded).
+function syncTrigger() {
+    const wrapper = triggerEl.value;
+    if (!wrapper) return;
+    const control =
+        wrapper.querySelector("button, a[href], [role=button]") || wrapper;
+    if (control === wrapper) {
+        wrapper.setAttribute("role", "button");
+        wrapper.tabIndex = 0;
+    } else {
+        wrapper.removeAttribute("role");
+        wrapper.removeAttribute("tabindex");
+    }
+    control.setAttribute("aria-haspopup", "menu");
+    control.setAttribute("aria-expanded", String(open.value));
+    if (open.value) control.setAttribute("aria-controls", menuId);
+    else control.removeAttribute("aria-controls");
+}
+onMounted(syncTrigger);
+onUpdated(syncTrigger);
 let triggerReturnEl = null; // element focus returns to on close
 
 function menuItems() {
@@ -45,10 +80,15 @@ function closeMenu(returnFocus) {
     if (returnFocus && triggerReturnEl) triggerReturnEl.focus();
 }
 function toggle() {
-    open.value ? closeMenu(false) : openMenu(false);
+    open.value ? closeMenu(false) : openMenu(true);
 }
 
 function onTriggerKeydown(e) {
+    if (e.key === "Escape" && open.value) {
+        e.preventDefault();
+        closeMenu(true);
+        return;
+    }
     if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         openMenu(true);
@@ -93,7 +133,12 @@ function pick(it) {
 }
 
 function onDocClick(e) {
-    if (root.value && !root.value.contains(e.target)) closeMenu(false);
+    if (
+        root.value &&
+        !root.value.contains(e.target) &&
+        !menuEl.value?.contains(e.target)
+    )
+        closeMenu(false);
 }
 // Only watch for outside clicks while the menu is open.
 watch(open, (isOpen) => {
@@ -106,66 +151,67 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
 <template>
     <div ref="root" class="n-dd">
         <span
+            ref="triggerEl"
             class="n-dd__trigger"
-            aria-haspopup="menu"
-            :aria-expanded="open"
-            :aria-controls="open ? menuId : undefined"
             @click="toggle"
             @keydown="onTriggerKeydown"
             ><slot :open="open"
         /></span>
-        <Transition name="n-dd-pop">
-            <div
-                v-if="open"
-                :id="menuId"
-                ref="menuEl"
-                class="n-dd__menu"
-                :class="'align-' + align"
-                role="menu"
-                @keydown="onMenuKeydown"
-            >
-                <template v-for="(it, i) in items" :key="i">
-                    <div
-                        v-if="it.divider"
-                        class="n-dd__divider"
-                        role="separator"
-                    />
-                    <button
-                        v-else
-                        type="button"
-                        class="n-dd__item"
-                        :class="{ danger: it.danger }"
-                        :role="
-                            it.selected !== undefined
-                                ? 'menuitemcheckbox'
-                                : 'menuitem'
-                        "
-                        :aria-checked="
-                            it.selected !== undefined
-                                ? !!it.selected
-                                : undefined
-                        "
-                        tabindex="-1"
-                        @click="pick(it)"
-                    >
-                        <span
-                            v-if="it.selected !== undefined"
-                            class="n-dd__check"
-                            :class="{ on: it.selected }"
-                        >
-                            <NIcon name="check" :size="11" />
-                        </span>
-                        <NIcon
-                            v-if="it.icon"
-                            :name="it.icon"
-                            :size="16"
-                            class="n-dd__icon"
+        <Teleport :to="floating.target.value">
+            <Transition name="n-dd-pop">
+                <div
+                    v-if="open"
+                    :id="menuId"
+                    ref="menuEl"
+                    :style="floating.style.value"
+                    class="n-dd__menu"
+                    :class="'align-' + align"
+                    role="menu"
+                    @keydown="onMenuKeydown"
+                >
+                    <template v-for="(it, i) in items" :key="i">
+                        <div
+                            v-if="it.divider"
+                            class="n-dd__divider"
+                            role="separator"
                         />
-                        {{ it.label }}
-                    </button>
-                </template>
-            </div>
-        </Transition>
+                        <button
+                            v-else
+                            type="button"
+                            class="n-dd__item"
+                            :class="{ danger: it.danger }"
+                            :role="
+                                it.selected !== undefined
+                                    ? 'menuitemcheckbox'
+                                    : 'menuitem'
+                            "
+                            :aria-checked="
+                                it.selected !== undefined
+                                    ? !!it.selected
+                                    : undefined
+                            "
+                            tabindex="-1"
+                            @click="pick(it)"
+                        >
+                            <span
+                                v-if="it.selected !== undefined"
+                                class="n-dd__check"
+                                :class="{ on: it.selected }"
+                            >
+                                <NIcon name="check" :size="11" />
+                            </span>
+                            <NIcon
+                                v-if="it.icon"
+                                :name="it.icon"
+                                :size="16"
+                                class="n-dd__icon"
+                            />
+                            {{ it.label }}
+                        </button>
+                    </template>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
@@ -179,6 +225,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
     cursor: pointer;
 }
 .n-dd__menu {
+    overflow-y: auto;
     position: absolute;
     top: calc(100% + 6px);
     min-width: 184px;

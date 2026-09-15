@@ -12,6 +12,7 @@
 //   • on deactivation / unmount: restores focus to the previously active element
 //     and detaches its listeners. No external dependencies.
 import { watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { overlayOwner, isTopOverlay } from "./useOverlayStack.js";
 
 // Selector matching every natively focusable element Tab should be able to reach.
 const FOCUSABLE = [
@@ -42,22 +43,33 @@ function resolve(target) {
 }
 
 // Collect the visible focusable elements inside `container`, in DOM order.
-function focusableWithin(container) {
+export function focusableWithin(container) {
     if (!container) return [];
     return Array.from(container.querySelectorAll(FOCUSABLE)).filter(
         (el) =>
-            el.offsetWidth > 0 ||
-            el.offsetHeight > 0 ||
-            el === document.activeElement,
+            el.tabIndex >= 0 &&
+            !el.closest("[inert]") &&
+            getComputedStyle(el).visibility !== "hidden" &&
+            (el.offsetWidth > 0 ||
+                el.offsetHeight > 0 ||
+                el === document.activeElement),
     );
 }
 
 export function useFocusTrap(containerRef, isActive) {
+    const owner = overlayOwner();
     const active =
         typeof isActive === "function" ? isActive : () => isActive?.value;
     let previouslyFocused = null;
+    let trappedContainer = null;
     // Identity token for this trap instance on the shared stack.
-    const trapId = {};
+    const trapId = {
+        container: () => resolve(containerRef),
+        returnTarget: () => previouslyFocused,
+        setReturnTarget: (el) => {
+            previouslyFocused = el;
+        },
+    };
 
     // Trap Tab / Shift+Tab so focus wraps within the container instead of escaping it.
     function onKeydown(e) {
@@ -90,6 +102,7 @@ export function useFocusTrap(containerRef, isActive) {
 
     // Open the trap: remember current focus, start listening for Tab, move focus inside.
     function activate() {
+        trappedContainer = resolve(containerRef);
         previouslyFocused =
             document.activeElement instanceof HTMLElement
                 ? document.activeElement
@@ -97,6 +110,7 @@ export function useFocusTrap(containerRef, isActive) {
         if (!trapStack.includes(trapId)) trapStack.push(trapId);
         document.addEventListener("keydown", onKeydown, true);
         nextTick(() => {
+            if (!active() || !isTopOverlay(owner)) return;
             const container = resolve(containerRef);
             if (!container) return;
             const items = focusableWithin(container);
@@ -112,16 +126,27 @@ export function useFocusTrap(containerRef, isActive) {
 
     // Close the trap: stop listening and restore focus to where it was before opening.
     function deactivate() {
+        const wasTop = trapStack[trapStack.length - 1] === trapId;
         document.removeEventListener("keydown", onKeydown, true);
         const idx = trapStack.indexOf(trapId);
+        const closingContainer = trappedContainer;
+        if (idx !== -1 && closingContainer) {
+            for (const above of trapStack.slice(idx + 1)) {
+                if (closingContainer.contains(above.returnTarget()))
+                    above.setReturnTarget(previouslyFocused);
+            }
+        }
         if (idx !== -1) trapStack.splice(idx, 1);
         if (
-            previouslyFocused &&
+            wasTop &&
+            previouslyFocused?.isConnected &&
+            !previouslyFocused.closest("[inert]") &&
             typeof previouslyFocused.focus === "function"
         ) {
             previouslyFocused.focus();
         }
         previouslyFocused = null;
+        trappedContainer = null;
     }
 
     // React to the dialog opening/closing (post-flush so the DOM is already updated).

@@ -97,7 +97,7 @@ const members = ref([
     {
         id: 1,
         name: "Анна Кириллова",
-        email: "anna.k@nergous-cit.app",
+        email: "anna.k@nergous-cit-ui-vue.app",
         role: "Owner",
         status: "active",
         plan: "Enterprise",
@@ -106,7 +106,7 @@ const members = ref([
     {
         id: 2,
         name: "Дмитрий Соколов",
-        email: "d.sokolov@nergous-cit.app",
+        email: "d.sokolov@nergous-cit-ui-vue.app",
         role: "Admin",
         status: "active",
         plan: "Pro",
@@ -115,7 +115,7 @@ const members = ref([
     {
         id: 3,
         name: "Мария Орлова",
-        email: "m.orlova@nergous-cit.app",
+        email: "m.orlova@nergous-cit-ui-vue.app",
         role: "Editor",
         status: "active",
         plan: "Pro",
@@ -124,7 +124,7 @@ const members = ref([
     {
         id: 4,
         name: "Игорь Лебедев",
-        email: "i.lebedev@nergous-cit.app",
+        email: "i.lebedev@nergous-cit-ui-vue.app",
         role: "Editor",
         status: "invited",
         plan: "Free",
@@ -133,7 +133,7 @@ const members = ref([
     {
         id: 5,
         name: "Светлана Зайцева",
-        email: "s.zaytseva@nergous-cit.app",
+        email: "s.zaytseva@nergous-cit-ui-vue.app",
         role: "Viewer",
         status: "active",
         plan: "Free",
@@ -142,7 +142,7 @@ const members = ref([
     {
         id: 6,
         name: "Павел Морозов",
-        email: "p.morozov@nergous-cit.app",
+        email: "p.morozov@nergous-cit-ui-vue.app",
         role: "Admin",
         status: "suspended",
         plan: "Pro",
@@ -151,7 +151,7 @@ const members = ref([
     {
         id: 7,
         name: "Ольга Новикова",
-        email: "o.novikova@nergous-cit.app",
+        email: "o.novikova@nergous-cit-ui-vue.app",
         role: "Editor",
         status: "active",
         plan: "Enterprise",
@@ -160,7 +160,7 @@ const members = ref([
     {
         id: 8,
         name: "Артём Волков",
-        email: "a.volkov@nergous-cit.app",
+        email: "a.volkov@nergous-cit-ui-vue.app",
         role: "Viewer",
         status: "invited",
         plan: "Free",
@@ -226,7 +226,7 @@ const roleOpts = [
 const inviteRoleOpts = roleOpts.filter((option) => option.value !== "Owner");
 const inviteRole = ref("Editor");
 function submitInvite() {
-    const em = inviteEmail.value.trim() || "new.user@nergous-cit.app";
+    const em = inviteEmail.value.trim() || "new.user@nergous-cit-ui-vue.app";
     members.value.unshift({
         id: Date.now(),
         name: em.split("@")[0].replace(/\./g, " "),

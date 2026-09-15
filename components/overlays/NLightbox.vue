@@ -38,21 +38,23 @@ function next() {
 // Arrow navigation. Escape is handled by useDismiss (topmost-overlay-only),
 // Tab cycling and focus return by useFocusTrap.
 function onKey(e) {
-    if (props.index < 0) return;
+    if (!isOpen() || !isTop()) return;
     if (e.key === "ArrowLeft") prev();
     else if (e.key === "ArrowRight") next();
 }
 watch(
-    () => props.index,
-    (i) => {
-        if (i >= 0) window.addEventListener("keydown", onKey);
+    isOpen,
+    (open) => {
+        if (typeof window === "undefined") return;
+        if (open) window.addEventListener("keydown", onKey);
         else window.removeEventListener("keydown", onKey);
     },
+    { immediate: true },
 );
 onUnmounted(() => window.removeEventListener("keydown", onKey));
 
 // Before useFocusTrap so inert is released before focus returns to the trigger.
-useInert(isOpen);
+const { layer, isTop } = useInert(isOpen, [root]);
 useFocusTrap(root, isOpen);
 useScrollLock(isOpen);
 // Escape closes only the topmost overlay (shared dismiss stack), not the whole stack.
@@ -66,6 +68,7 @@ useDismiss(isOpen, close);
                 v-if="index >= 0 && items[index]"
                 ref="root"
                 class="n-lb"
+                :style="{ zIndex: layer }"
                 data-overlay
                 role="dialog"
                 aria-modal="true"

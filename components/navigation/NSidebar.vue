@@ -22,7 +22,7 @@ defineProps({
     mobile: { type: Boolean, default: false },
     brand: {
         type: Object,
-        default: () => ({ name: "nergous-cit", sub: "Operations", glyph: "N" }),
+        default: () => ({ name: "nergous-cit-ui-vue", sub: "Operations", glyph: "N" }),
     },
     linkAs: { type: Object, default: () => ({}) },
     // Accessible name for the <nav> landmark (English default; app localizes).

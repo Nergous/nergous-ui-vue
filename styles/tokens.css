@@ -1,5 +1,5 @@
 /* ============================================================
-   nergous-cit Design System — Tokens & base
+   nergous-cit-ui-vue Design System — Tokens & base
    Imported automatically by src/index.js.
    Switch themes with  <html data-theme="dark">
    Switch density with <html data-density="compact|comfortable|spacious">
@@ -114,7 +114,7 @@
     --ok-bg: #e9f6ee;
     --warn: #b8700a;
     --warn-bg: #fbf0dc;
-    --danger: #dc2626;
+    --danger: #b91c1c;
     --danger-bg: #fdecec;
     --info: #2563eb;
     --info-bg: #e9effd;
@@ -211,10 +211,13 @@
 }
 
 /* Optional base reset — safe to remove if it clashes with your app */
+.nergous-cit-ui-vue-reset,
+.nergous-cit-ui-vue-reset *,
 .nergouscit-reset,
 .nergouscit-reset * {
     box-sizing: border-box;
 }
+.nergous-cit-ui-vue-reset,
 .nergouscit-reset {
     margin: 0;
     font-family: var(--font-sans);

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 
 // NPagination — page navigation. v-model:page is the current page; pages = total count.
@@ -12,14 +12,31 @@ const props = defineProps({
     nextLabel: { type: String, default: "Next page" },
 });
 const emit = defineEmits(["update:page"]);
+const totalPages = computed(() =>
+    Number.isFinite(props.pages) ? Math.max(1, Math.floor(props.pages)) : 1,
+);
+const currentPage = computed(() =>
+    Number.isFinite(props.page)
+        ? Math.min(Math.max(1, Math.floor(props.page)), totalPages.value)
+        : 1,
+);
+watch(
+    [() => props.page, totalPages],
+    () => {
+        if (props.page !== currentPage.value)
+            emit("update:page", currentPage.value);
+    },
+    { immediate: true },
+);
 function go(p) {
-    if (p >= 1 && p <= props.pages && p !== props.page) emit("update:page", p);
+    if (p >= 1 && p <= totalPages.value && p !== currentPage.value)
+        emit("update:page", p);
 }
 
 // Windowed page list with ellipses: always show first/last, current ±1.
 const items = computed(() => {
-    const total = Math.max(1, props.pages);
-    const cur = Math.min(Math.max(1, props.page), total);
+    const total = totalPages.value;
+    const cur = currentPage.value;
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
     const set = new Set([1, total, cur, cur - 1, cur + 1]);
     const list = [...set]
@@ -41,9 +58,9 @@ const items = computed(() => {
         <button
             type="button"
             class="n-pg__nav"
-            :disabled="page <= 1"
+            :disabled="currentPage <= 1"
             :aria-label="prevLabel"
-            @click="go(page - 1)"
+            @click="go(currentPage - 1)"
         >
             <NIcon name="chevron-left" :size="15" />
         </button>
@@ -55,8 +72,8 @@ const items = computed(() => {
                 v-else
                 type="button"
                 class="n-pg__pg"
-                :class="{ on: it === page }"
-                :aria-current="it === page ? 'page' : undefined"
+                :class="{ on: it === currentPage }"
+                :aria-current="it === currentPage ? 'page' : undefined"
                 @click="go(it)"
             >
                 {{ it }}
@@ -65,9 +82,9 @@ const items = computed(() => {
         <button
             type="button"
             class="n-pg__nav"
-            :disabled="page >= pages"
+            :disabled="currentPage >= totalPages"
             :aria-label="nextLabel"
-            @click="go(page + 1)"
+            @click="go(currentPage + 1)"
         >
             <NIcon name="chevron-right" :size="15" />
         </button>

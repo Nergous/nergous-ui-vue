@@ -1,7 +1,7 @@
-// format.js — locale-agnostic formatting helpers for the nergous-cit DS.
+// format.js — locale-agnostic formatting helpers for the nergous-cit-ui-vue DS.
 // Pure Intl, with no hardcoded language or strings: the host app passes the active locale.
 // Usage:
-//   import { createFormat } from "@/lib/nergous-cit";
+//   import { createFormat } from "@/lib/nergous-cit-ui-vue";
 //   const { formatDateTime } = createFormat("ru-RU");
 const EMPTY = "—";
 
@@ -68,8 +68,10 @@ export function createFormat(locale) {
 
         // Grouped large numbers, e.g. ru → 1284 → "1 284".
         formatNumber(value) {
+            if (value == null || (typeof value === "string" && !value.trim()))
+                return EMPTY;
             const n = typeof value === "number" ? value : Number(value);
-            return Number.isFinite(n) ? nf.format(n) : String(value ?? "");
+            return Number.isFinite(n) ? nf.format(n) : EMPTY;
         },
     };
 }

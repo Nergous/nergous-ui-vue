@@ -12,6 +12,7 @@ import { useInert } from "../../composables/useInert.js";
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
     title: { type: String, default: "" },
+    dialogLabel: { type: String, default: "Dialog" },
     width: { type: String, default: "460px" },
     closeLabel: { type: String, default: "Close" },
 });
@@ -22,10 +23,11 @@ function close() {
 }
 
 const dialogEl = ref(null);
+const overlayEl = ref(null);
 const titleId = useId();
 // Before useFocusTrap so inert is released before focus returns to the trigger.
-useInert(() => props.modelValue);
-useFocusTrap(dialogEl, () => props.modelValue);
+const { layer } = useInert(() => props.modelValue, [overlayEl]);
+useFocusTrap(overlayEl, () => props.modelValue);
 useScrollLock(() => props.modelValue);
 // Escape closes only the topmost overlay (shared dismiss stack), not the whole stack.
 useDismiss(() => props.modelValue, close);
@@ -37,6 +39,8 @@ useDismiss(() => props.modelValue, close);
             <div
                 v-if="modelValue"
                 class="n-modal__overlay"
+                ref="overlayEl"
+                :style="{ zIndex: layer }"
                 data-overlay
                 @click.self="close"
             >
@@ -46,6 +50,7 @@ useDismiss(() => props.modelValue, close);
                     role="dialog"
                     aria-modal="true"
                     :aria-labelledby="title ? titleId : undefined"
+                    :aria-label="title ? undefined : dialogLabel"
                     :style="{ width: 'min(' + width + ', 94vw)' }"
                 >
                     <div class="n-modal__head">
@@ -82,6 +87,11 @@ useDismiss(() => props.modelValue, close);
     padding: 24px;
 }
 .n-modal {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 48px);
+    min-height: 0;
+    max-width: 100%;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
@@ -90,6 +100,7 @@ useDismiss(() => props.modelValue, close);
     animation: n-pop 0.16s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .n-modal__head {
+    flex: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -132,10 +143,14 @@ useDismiss(() => props.modelValue, close);
     outline-offset: 2px;
 }
 .n-modal__body {
+    min-height: 0;
+    overflow-y: auto;
     padding: 20px;
     color: var(--text);
 }
 .n-modal__foot {
+    flex: none;
+    flex-wrap: wrap;
     display: flex;
     gap: 10px;
     padding: 16px 20px;

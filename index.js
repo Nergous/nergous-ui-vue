@@ -1,5 +1,5 @@
-// nergous-cit DS v1.0.0 — vendored 2026-06-22. Vue 3 entry point.
-// Usage: import { NButton, useToast } from '@/lib/nergous-cit'
+// nergous-cit-ui-vue — Vue 3 source-package entry point; version in package.json.
+// Usage: import { NButton, useToast } from '@/lib/nergous-cit-ui-vue'
 //
 // Named imports only. Global registration via app.use() is intentionally not
 // supported (editor autocomplete + a page's real dependencies stay visible).

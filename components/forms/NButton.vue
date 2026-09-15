@@ -38,6 +38,15 @@ const attrs = useAttrs();
 const iconOnly = computed(() => !!props.icon && !slots.default);
 // Native <button> root vs a polymorphic one (link/component).
 const isButton = computed(() => props.as === "button");
+const blocked = computed(() => props.disabled || props.loading);
+function guardActivation(event) {
+    if (!blocked.value) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+}
+function guardKey(event) {
+    if (event.key === "Enter" || event.key === " ") guardActivation(event);
+}
 
 // An icon-only button has no visible text — it needs an accessible name.
 // aria-label / aria-labelledby fall through to <button>; warn in dev if missing.
@@ -67,6 +76,10 @@ if (
         :disabled="isButton ? disabled || loading : undefined"
         :aria-disabled="!isButton && (disabled || loading) ? true : undefined"
         :aria-busy="loading || undefined"
+        :tabindex="!isButton && blocked ? -1 : undefined"
+        @click.capture="guardActivation"
+        @auxclick.capture="guardActivation"
+        @keydown.capture="guardKey"
     >
         <span v-if="loading" class="n-btn__spin" />
         <NIcon v-else-if="icon" :name="icon" :size="size === 'lg' ? 18 : 16" />
@@ -165,7 +178,8 @@ if (
     background: var(--danger-bg);
     color: var(--danger);
 }
-.n-btn:disabled {
+.n-btn:disabled,
+.n-btn[aria-disabled="true"] {
     background: var(--surface-3);
     color: var(--text-3);
     cursor: not-allowed;
