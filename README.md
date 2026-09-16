@@ -1,5 +1,12 @@
 # nergous-ui-vue — Vue 3
 
+[![npm version](https://img.shields.io/npm/v/nergous-ui-vue?logo=npm)](https://www.npmjs.com/package/nergous-ui-vue)
+[![CI](https://github.com/Nergous/nergous-ui-vue/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/Nergous/nergous-ui-vue/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/npm/l/nergous-ui-vue)](https://github.com/Nergous/nergous-ui-vue/blob/main/LICENSE)
+[![Vue 3.5+](https://img.shields.io/badge/Vue-3.5%2B-42b883?logo=vuedotjs&logoColor=white)](https://github.com/Nergous/nergous-ui-vue#requirements)
+[![TypeScript declarations](https://img.shields.io/badge/TypeScript-declarations-3178c6?logo=typescript&logoColor=white)](https://github.com/Nergous/nergous-ui-vue/blob/main/index.d.ts)
+[![Zero runtime dependencies beyond Vue](https://img.shields.io/badge/runtime_dependencies-0-42b883)](https://github.com/Nergous/nergous-ui-vue/blob/main/package.json)
+
 Token-driven component library for the nergous-ui-vue design system. Light/dark
 themes, three density levels, keyboard and accessibility support. Zero runtime dependencies
 beyond Vue 3.
