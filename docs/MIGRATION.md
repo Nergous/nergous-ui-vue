@@ -1,8 +1,8 @@
 # Migrating consumers to the package
 
-This document does not change consumers. jur-bot-max must remain untouched.
-Stabilization changes are currently Unreleased; package.json retains its existing
-version until the maintainer chooses a release version and publishes/tags it.
+Use this guide when replacing a legacy vendored snapshot with the npm package.
+Review CHANGELOG.md for versioned changes and pending Unreleased changes.
+Choose an explicitly published version or an approved local archive.
 
 1. Preserve any application-local changes in the vendored directory and review them
    against the canonical library. Do not blindly overwrite/delete the snapshot.

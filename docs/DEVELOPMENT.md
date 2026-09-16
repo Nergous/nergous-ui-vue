@@ -36,7 +36,7 @@ checks against a live application. There is no library dist output.
 1. Resolve regressions and run npm test on the approved working tree.
 2. Inspect npm pack --dry-run and review API/migration notes.
 3. Select the release version, update package/lockfile and changelog consistently.
-   The current stabilization is Unreleased, not an already published version.
+   Move the changes being released from Unreleased into the selected version section.
 4. Review the registry/account/access policy before publishing. CI only validates;
    it has read-only repository permissions and does not publish or deploy.
 5. Test the actual versioned archive in each consumer. Commit consumer lockfiles

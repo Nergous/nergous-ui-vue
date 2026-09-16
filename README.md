@@ -4,10 +4,8 @@ Token-driven component library for the nergous-ui-vue design system. Light/dark
 themes, three density levels, keyboard and accessibility support. Zero runtime dependencies
 beyond Vue 3.
 
-This folder is self-contained: components, composables, formatting helpers,
-design tokens and the bundled fonts all live here, and the entry barrel
-(`index.js`) auto-imports the token stylesheet. Drop the folder into any Vue 3
-project and import from the barrel.
+The package includes components, composables, formatting helpers, design tokens
+and bundled fonts. Its entry point imports the token stylesheet automatically.
 
 ## Requirements
 
@@ -23,8 +21,13 @@ There is no dependency on Laravel, Inertia, Vue Router or a Go API.
 
 For a local/unpublished release, run `npm pack --ignore-scripts` here and install
 the resulting archive with `npm install /path/to/package.tgz` in each consumer.
-After a registry release, install an explicit published version and commit the
-consumer lockfile. No automatic publishing is configured; packing is not publishing.
+After a registry release, install the package and commit the consumer lockfile:
+
+```sh
+npm install nergous-ui-vue
+```
+
+No automatic publishing is configured; packing is not publishing.
 
 ```js
 import { NButton, NModal, useTheme } from 'nergous-ui-vue'
@@ -33,56 +36,8 @@ import 'nergous-ui-vue/styles'
 ```
 
 See [API contracts](docs/API.md), [migration](docs/MIGRATION.md), and
-[development/release checks](docs/DEVELOPMENT.md). `index.d.ts` covers all public
+[development/release checks](https://github.com/Nergous/nergous-ui-vue/blob/HEAD/docs/DEVELOPMENT.md). `index.d.ts` covers all public
 components, events, scoped slots and composables.
-
-### Legacy vendored snapshots
-
-Copying a **vendored snapshot** remains supported for existing projects. The folder
-stays editable in place, but updates overwrite local modifications. New integrations
-should use the package dependency described above.
-
-The convenient way to pull (or later update) a snapshot is [`tiged`](https://github.com/tiged/tiged)
-(a maintained `degit` fork): it shallow-clones this repo, strips the `.git`, and
-drops the contents into a target folder.
-
-```bash
-# download / refresh the snapshot into your project
-npx tiged --mode=git --force Nergous/nergous-ui-vue src/lib/nergous-ui-vue
-```
-
-`--mode=git` clones through your local git, so it works for both public and
-private repos without registry tokens. `--force` overwrites the target — that is
-the snapshot model: re-pulling replaces local edits, so contribute changes back
-here rather than diverging downstream.
-
-Prefer a one-liner in your project's `package.json`:
-
-```json
-"scripts": {
-  "ds:pull": "tiged --mode=git --force Nergous/nergous-ui-vue src/lib/nergous-ui-vue"
-}
-```
-
-> No network / quick manual route: just copy this repo's contents into
-> `src/lib/nergous-ui-vue` by hand. There is no build step.
-
-To make imports short, add an alias to your bundler. With Vite, mapping `@` to
-your source root lets you write `@/lib/nergous-ui-vue`:
-
-```js
-// vite.config.js
-import { fileURLToPath, URL } from 'node:url'
-
-export default {
-  resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
-  },
-}
-```
-
-All examples below use `@/lib/nergous-ui-vue`. Adjust the path to wherever you
-vendored the folder (e.g. `./lib/nergous-ui-vue`) if you skip the alias.
 
 ## Usage
 
@@ -92,20 +47,19 @@ page's real dependencies visible).
 
 ```vue
 <script setup>
-import { NButton, NBadge, useToast } from '@/lib/nergous-ui-vue'
+import { NButton, NBadge, useToast } from 'nergous-ui-vue'
 const toast = useToast()
 </script>
 ```
 
-> The barrel (`index.js`) imports `styles/tokens.css` for you. If you import a
-> component while bypassing the barrel, pull in the tokens manually:
-> `import '@/lib/nergous-ui-vue/styles/tokens.css'`.
+> The entry imports styles automatically. To load only the stylesheet, use
+> `import 'nergous-ui-vue/styles'`.
 
 ## Themes and density
 
 ```vue
 <script setup>
-import { useTheme } from '@/lib/nergous-ui-vue'
+import { useTheme } from 'nergous-ui-vue'
 const { theme, density, toggle, setTheme, setDensity } = useTheme()
 // theme   → ref('light' | 'dark')
 // density → ref('compact' | 'comfortable' | 'spacious')
@@ -134,7 +88,7 @@ HTML head, reading the same `localStorage` keys `useTheme` uses. Those keys are
 exported so you don't hardcode them:
 
 ```js
-import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from '@/lib/nergous-ui-vue'
+import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from 'nergous-ui-vue'
 // THEME_STORAGE_KEY   === 'nergous-ui-vue-theme'
 // DENSITY_STORAGE_KEY === 'nergous-ui-vue-density'
 ```
@@ -158,7 +112,7 @@ Render `<NToaster />` once near the app root, then push messages from anywhere:
 
 ```vue
 <script setup>
-import { useToast } from '@/lib/nergous-ui-vue'
+import { NToaster, useToast } from 'nergous-ui-vue'
 const toast = useToast()
 </script>
 
@@ -189,7 +143,7 @@ no hardcoded language; the host app passes the active BCP-47 locale:
 
 ```vue
 <script setup>
-import { createFormat } from '@/lib/nergous-ui-vue'
+import { createFormat } from 'nergous-ui-vue'
 const { formatDateTime, formatDateShort, formatRelative, formatNumber } = createFormat('en-US')
 // formatDateTime('2025-03-12T10:00:00Z') → "03/12/2025, 10:00 AM"
 // formatDateShort(...) → "Mar 12, 2025" · formatRelative(...) → "2 minutes ago"
@@ -268,7 +222,7 @@ attributes on the scroll container's children.
 ```vue
 <script setup>
 import { ref } from 'vue'
-import { NCard, NBadge, NInput, NSegmented, NButton, NModal } from '@/lib/nergous-ui-vue'
+import { NCard, NBadge, NInput, NSegmented, NButton, NModal } from 'nergous-ui-vue'
 
 const open = ref(false)
 const q = ref('')
@@ -328,6 +282,9 @@ dismissing the dialog. Style component classes, not consumer ancestor selectors.
 - `examples/App.vue` — a showcase of the base components.
 - `examples/AdminApp.vue` — a **full admin app** built on the shell components
   (sidebar, topbar, table, KPIs, dropzone, command palette, modal, drawer, toasts).
+
+Examples live in the repository and are excluded from the npm package. Replace
+their `../index.js` import with `nergous-ui-vue` when copying into a consumer.
 
 Copy either one into a fresh Vite project as the root `App.vue` to see the
 library in action.

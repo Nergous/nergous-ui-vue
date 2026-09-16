@@ -1,10 +1,15 @@
-# Dependencies (none today — the library is zero-build source; kept for future tooling/playground)
+# Development dependencies and generated output
 node_modules/
 dist/
 .workflow/
 .test-output/
 test-results/
 playwright-report/
+*.tgz
+
+# Local agent instructions and working notes
+/AGENTS.md
+/docs/superpowers/
 
 # OS / editor
 .DS_Store

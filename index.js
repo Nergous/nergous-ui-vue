@@ -1,5 +1,5 @@
 // nergous-ui-vue — Vue 3 source-package entry point; version in package.json.
-// Usage: import { NButton, useToast } from '@/lib/nergous-ui-vue'
+// Usage: import { NButton, useToast } from 'nergous-ui-vue'
 //
 // Named imports only. Global registration via app.use() is intentionally not
 // supported (editor autocomplete + a page's real dependencies stay visible).

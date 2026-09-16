@@ -1,6 +1,6 @@
 {
   "name": "nergous-ui-vue",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "nergous-ui-vue Design System — a zero-dependency Vue 3 component library: themeable & density-aware design tokens, 41 components, and composables.",
   "type": "module",
   "main": "./index.js",
@@ -33,8 +33,7 @@
     "README.md",
     "CHANGELOG.md",
     "docs/API.md",
-    "docs/MIGRATION.md",
-    "docs/DEVELOPMENT.md"
+    "docs/MIGRATION.md"
   ],
   "peerDependencies": {
     "vue": "^3.5.0"

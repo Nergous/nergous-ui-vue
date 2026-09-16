@@ -5,11 +5,24 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
-### Changed — 2026-09-16
+## v1.0.3 — 2026-09-16
+
+### Changed
 
 - Renamed package and repository from `nergous-cit-ui-vue` to
   `nergous-ui-vue`. Update dependency names, import paths, vendored folder
-  names and GitHub URLs before consuming future releases.
+  names and GitHub URLs when upgrading to this release.
+- Make npm package installation the primary documented workflow; replace vendored
+  imports and remove obsolete snapshot download instructions.
+- Exclude maintainer development notes from the npm archive while retaining API
+  and migration documentation. Ignore local agent notes and generated tarballs.
+- Require offline archive consumer installation and validate the allowed package
+  files to prevent development artifacts from entering releases.
+
+### Fixed
+
+- Import NToaster in the toast example and document the public stylesheet export.
+- Correct outdated migration and release guidance.
 
 ## v1.0.2 — 2026-09-15
 

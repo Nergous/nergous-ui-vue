@@ -1,5 +1,5 @@
 // Archive consumer smoke. All writes stay in a unique ignored test directory.
-// npm install prefers the local cache and has lifecycle scripts disabled; no
+// npm install runs offline and has lifecycle scripts disabled; no
 // application env, backend, production database, or application API is involved.
 import fs from "node:fs";
 import path from "node:path";
@@ -40,11 +40,16 @@ for (const required of [
 ])
     assert.ok(names.includes(required), required);
 assert.equal(names.filter((f) => f.endsWith(".woff2")).length, 8);
-assert.ok(
-    !names.some((f) =>
-        /^(tests|scripts|node_modules|\.workflow|\.test-output)\//.test(f),
-    ),
-);
+const allowedRootFiles = new Set([
+    "package.json", "index.js", "index.d.ts", "README.md", "CHANGELOG.md", "LICENSE",
+]);
+for (const name of names) {
+    assert.ok(
+        allowedRootFiles.has(name) ||
+            /^(components\/.*\.vue|components\/primitives\/icons\.js|composables\/.*\.js|utils\/.*\.js|styles\/.*\.css|fonts\/.*\.woff2|docs\/(?:API|MIGRATION)\.md)$/.test(name),
+        "Unexpected package file: " + name,
+    );
+}
 const host = path.join(temp, "consumer");
 fs.mkdirSync(host);
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
@@ -60,7 +65,7 @@ fs.writeFileSync(
 run(
     [
         "install",
-        "--prefer-offline",
+        "--offline",
         "--ignore-scripts",
         "--no-audit",
         "--no-fund",
@@ -134,7 +139,7 @@ try {
     );
     assert.deepEqual(errors, []);
     console.log(
-        "PASS: archive installed cache-first, 41 exports, TypeScript, production build, CSS/fonts and rendered button. " +
+        "PASS: archive installed offline, 41 exports, TypeScript, production build, CSS/fonts and rendered button. " +
             packed.filename,
     );
 } finally {
