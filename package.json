@@ -13,7 +13,8 @@
     "test:browser": "playwright test",
     "test:package": "node scripts/check-package.mjs",
     "screenshots": "node scripts/capture-screenshots.mjs",
-    "dev": "vite --config tests/vite.config.js --host 127.0.0.1"
+    "dev": "vite --config tests/vite.config.js --host 127.0.0.1",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "exports": {
     ".": {
@@ -63,8 +64,9 @@
     "@vitejs/plugin-vue": "6.0.7",
     "@vue/compiler-sfc": "3.5.39",
     "axe-core": "4.13.0",
-    "typescript": "7.0.2",
+    "typescript": "^6.0.2",
     "vite": "8.1.1",
-    "vue": "3.5.39"
+    "vue": "3.5.39",
+    "vue-tsc": "^3.3.11"
   }
 }
