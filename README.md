@@ -7,6 +7,22 @@ beyond Vue 3.
 The package includes components, composables, formatting helpers, design tokens
 and bundled fonts. Its entry point imports the token stylesheet automatically.
 
+## Preview
+
+Actual Chromium screenshots of the included examples, using bundled fonts and
+local demo data. Click an image to inspect it at full size.
+
+**Admin shell — sidebar, member table, badges, search and pagination**
+
+[![Admin shell in the light theme](https://raw.githubusercontent.com/Nergous/nergous-ui-vue/main/docs/screenshots/admin-light.png)](https://raw.githubusercontent.com/Nergous/nergous-ui-vue/main/docs/screenshots/admin-light.png)
+
+| Light theme | Dark theme |
+| --- | --- |
+| [![Light components and form wizard](https://raw.githubusercontent.com/Nergous/nergous-ui-vue/main/docs/screenshots/components-light.png)](https://raw.githubusercontent.com/Nergous/nergous-ui-vue/main/docs/screenshots/components-light.png) | [![Dark components and form wizard](https://raw.githubusercontent.com/Nergous/nergous-ui-vue/main/docs/screenshots/components-dark.png)](https://raw.githubusercontent.com/Nergous/nergous-ui-vue/main/docs/screenshots/components-dark.png) |
+
+Buttons, inputs, selection controls, avatars, alerts, tabs and the form wizard.
+Screenshots are hosted in the repository and are not included in the npm archive.
+
 ## Requirements
 
 - **Vue 3** (`^3.5`) — the only peer dependency.

@@ -17,6 +17,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
       - run: npm test
+        env:
+          npm_config_cache: ${{ runner.temp }}/nergous-ui-package-cache-${{ github.run_id }}-${{ github.run_attempt }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

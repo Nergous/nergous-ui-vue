@@ -21,15 +21,28 @@ On Linux CI, install browser system dependencies with
 - test:browser runs isolated Playwright regressions with external requests blocked;
   axe checks focus/name/form surfaces. Tall-modal tests cover light/dark and all
   three densities at narrow viewport sizes.
-- test:package packs with lifecycle scripts disabled, installs the archive offline
-  into a unique temporary consumer, type-checks it, builds it and renders a button
+- test:package packs with lifecycle scripts disabled, installs the archive into a unique temporary consumer
+  using the npm cache and downloading missing registry data, type-checks it, builds it and renders a button
   with the installed package. It verifies fonts and excludes dev/test artifacts.
 - npm run dev runs only tests/fixture. Select a scenario through ?mode=select,
   rte, overlay, tall, table, command, lightbox or toaster.
 
-No gate loads a consumer environment file, starts a backend or connects to a
-database/API. Generated files stay under ignored .test-output. Do not run these
+No gate loads a consumer environment file, starts a backend or connects to an
+application database/API. npm may contact the package registry during installation.
+Generated files stay under ignored .test-output. Do not run these
 checks against a live application. There is no library dist output.
+
+## README screenshots
+
+Run `npm run screenshots` after installing Chromium. The script builds only
+the repository examples in an isolated temporary directory, disables env loading,
+blocks external browser requests and writes three PNGs to `docs/screenshots/`.
+Review the images before committing them. README uses absolute repository URLs
+so the previews also work when rendered outside GitHub. No image files are shipped
+in the npm archive.
+
+The CI test step uses a fresh npm cache so archive installation cannot silently
+depend on registry metadata left over from an earlier run.
 
 ## Release checklist
 

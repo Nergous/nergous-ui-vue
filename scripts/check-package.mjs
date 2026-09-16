@@ -1,6 +1,7 @@
 // Archive consumer smoke. All writes stay in a unique ignored test directory.
-// npm install runs offline and has lifecycle scripts disabled; no
-// application env, backend, production database, or application API is involved.
+// npm install prefers cached packages and fetches missing registry data; lifecycle
+// scripts are disabled. No application env, backend, production database,
+// or application API is involved.
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
@@ -65,7 +66,7 @@ fs.writeFileSync(
 run(
     [
         "install",
-        "--offline",
+        "--prefer-offline",
         "--ignore-scripts",
         "--no-audit",
         "--no-fund",
@@ -139,7 +140,7 @@ try {
     );
     assert.deepEqual(errors, []);
     console.log(
-        "PASS: archive installed offline, 41 exports, TypeScript, production build, CSS/fonts and rendered button. " +
+        "PASS: archive installed cache-first, 41 exports, TypeScript, production build, CSS/fonts and rendered button. " +
             packed.filename,
     );
 } finally {

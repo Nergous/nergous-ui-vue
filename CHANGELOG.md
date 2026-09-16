@@ -5,6 +5,16 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+### Fixed
+
+- Restore cache-first archive installation with registry fallback so clean CI
+  runners can resolve Vue without bypassing peer dependency validation.
+
+### Added
+
+- Real light/dark component and admin screenshots in README, with a reproducible
+  isolated capture command. Screenshot assets stay outside the npm package.
+
 ## v1.0.3 — 2026-09-16
 
 ### Changed

@@ -12,6 +12,7 @@
     "test:types": "tsc --noEmit -p tests/types/tsconfig.json",
     "test:browser": "playwright test",
     "test:package": "node scripts/check-package.mjs",
+    "screenshots": "node scripts/capture-screenshots.mjs",
     "dev": "vite --config tests/vite.config.js --host 127.0.0.1"
   },
   "exports": {
