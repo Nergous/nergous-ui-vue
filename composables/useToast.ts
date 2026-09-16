@@ -2,17 +2,39 @@
 // push messages from anywhere via useToast() (success / error / warning / info).
 import { reactive } from "vue";
 
+
+export type ToastTone = "ok" | "info" | "warn" | "danger";
+
+export interface ToastOptions {
+    tone?: ToastTone;
+    title?: string;
+    msg?: string;
+    duration?: number;
+}
+
+export interface Toast extends ToastOptions {
+    id: number;
+    tone: ToastTone;
+    title: string;
+    msg: string;
+    duration: number;
+    timer: ReturnType<typeof setTimeout> | null;
+    startedAt: number;
+    remaining: number;
+}
+
 // Single shared list of active toasts (module-level singleton).
-const state = reactive({ toasts: [] });
+const state = reactive<{toasts: Toast[]}>({ toasts: [] });
 let uid = 0;
 
 // Arm/disarm a toast's auto-dismiss timer. `remaining` tracks the time left so
 // pauseAll/resumeAll (pointer/focus inside the toaster) can stop and resume it.
-function arm(t) {
+function arm(t: Toast) {
     t.startedAt = Date.now();
     t.timer = setTimeout(() => dismiss(t.id), t.remaining);
 }
-function disarm(t) {
+
+function disarm(t: Toast) {
     if (t.timer) {
         clearTimeout(t.timer);
         t.timer = null;
@@ -21,7 +43,7 @@ function disarm(t) {
 
 // Add a toast. Accepts a string (title only) or an options object
 // ({ tone, title, msg, duration }). Returns the new toast's id.
-function push(opts) {
+function push(opts: string | ToastOptions): number {
     const o = typeof opts === "string" ? { title: opts } : opts || {};
     const tone = o.tone || "ok";
     const t = {
@@ -35,16 +57,18 @@ function push(opts) {
         ...o,
         timer: null,
         startedAt: 0,
-    };
+    } as Toast;
+
     t.remaining = t.duration;
     state.toasts.push(t);
+
     // Schedule auto-dismiss; keep the timer on the toast so manual dismiss can cancel it.
     if (t.duration > 0) arm(t);
     return t.id;
 }
 
 // Remove a toast by id, cancelling its pending auto-dismiss timer if still armed.
-function dismiss(id) {
+function dismiss(id: number) {
     const i = state.toasts.findIndex((t) => t.id === id);
     if (i > -1) {
         disarm(state.toasts[i]);
@@ -77,9 +101,9 @@ export function useToast() {
         dismiss,
         pauseAll,
         resumeAll,
-        success: (title, msg) => push({ tone: "ok", title, msg }),
-        error: (title, msg) => push({ tone: "danger", title, msg }),
-        warning: (title, msg) => push({ tone: "warn", title, msg }),
-        info: (title, msg) => push({ tone: "info", title, msg }),
+        success: (title: string, msg?: string) => push({ tone: "ok", title, msg }),
+        error: (title: string, msg?: string) => push({ tone: "danger", title, msg }),
+        warning: (title: string, msg?: string) => push({ tone: "warn", title, msg }),
+        info: (title: string, msg?: string) => push({ tone: "info", title, msg }),
     };
 }

@@ -64,11 +64,11 @@ import {
     useTheme,
     THEME_STORAGE_KEY,
     DENSITY_STORAGE_KEY,
-} from "./composables/useTheme.js";
-import { useToast } from "./composables/useToast.js";
-import { useScrollSpy } from "./composables/useScrollSpy.js";
+} from "./composables/useTheme.ts";
+import { useToast } from "./composables/useToast.ts";
+import { useScrollSpy } from "./composables/useScrollSpy.ts";
 
-import { createFormat, toDate } from "./utils/format.js";
+import { createFormat, toDate } from "./utils/format.ts";
 
 export {
     NIcon,

@@ -12,30 +12,48 @@ import { ref, watch } from "vue";
 export const THEME_STORAGE_KEY = "nergous-ui-vue-theme";
 export const DENSITY_STORAGE_KEY = "nergous-ui-vue-density";
 
+export type Theme = "light" | "dark";
+export type Density = "compact" | "comfortable" | "spacious";
+
 // Read a persisted value, falling back to a default (safe in private mode / SSR).
-const themes = ["light", "dark"];
-const densities = ["compact", "comfortable", "spacious"];
-function stored(key, fallback, allowed, legacyKey) {
+const themes: readonly Theme[] = ["light", "dark"];
+const densities: readonly Density[] = ["compact", "comfortable", "spacious"];
+
+function stored<T extends string>(
+    key: string,
+    fallback: T,
+    allowed: readonly T[],
+    legacyKey: string,
+): T {
     try {
-        const value =
-            localStorage.getItem(key) ?? localStorage.getItem(legacyKey);
-        return allowed.includes(value) ? value : fallback;
+        const value = localStorage.getItem(key) ?? localStorage.getItem(legacyKey);
+
+        return value !== null && isAllowed(value, allowed) ? value : fallback;
     } catch {
         return fallback;
     }
 }
 
+function isAllowed<T extends string>(
+    value: string,
+    allowed: readonly T[],
+): value is T {
+    return allowed.some((item) => item === value);
+}
+
 // Module-level singleton state shared across every useTheme() caller.
-const theme = ref(
-    stored(THEME_STORAGE_KEY, "light", themes, "nergouscit-theme"),
+const theme = ref<Theme>(
+    stored(THEME_STORAGE_KEY, "light", themes, "nergous-ui-theme"),
 );
-const density = ref(
-    stored(DENSITY_STORAGE_KEY, "comfortable", densities, "nergouscit-density"),
+
+const density = ref<Density>(
+    stored(DENSITY_STORAGE_KEY, "comfortable", densities, "nergous-ui-density"),
 );
 
 // Reflect the current theme/density onto <html> so tokens.css can react to them.
-function apply() {
+function apply(): void {
     if (typeof document === "undefined") return;
+
     document.documentElement.dataset.theme = theme.value;
     document.documentElement.dataset.density = density.value;
 }
@@ -47,19 +65,23 @@ watch(theme, (v) => {
         theme.value = "light";
         return;
     }
+
     try {
         localStorage.setItem(THEME_STORAGE_KEY, v);
     } catch (e) {}
     apply();
 });
+
 watch(density, (v) => {
     if (!densities.includes(v)) {
         density.value = "comfortable";
         return;
     }
+
     try {
         localStorage.setItem(DENSITY_STORAGE_KEY, v);
-    } catch (e) {}
+    } catch (e) { }
+
     apply();
 });
 
@@ -71,10 +93,10 @@ export function useTheme() {
         toggle: () => {
             theme.value = theme.value === "dark" ? "light" : "dark";
         },
-        setTheme: (v) => {
+        setTheme: (v: Theme) => {
             theme.value = themes.includes(v) ? v : "light";
         },
-        setDensity: (v) => {
+        setDensity: (v: Density) => {
             density.value = densities.includes(v) ? v : "comfortable";
         },
     };

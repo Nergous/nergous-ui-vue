@@ -47,7 +47,7 @@ const allowedRootFiles = new Set([
 for (const name of names) {
     assert.ok(
         allowedRootFiles.has(name) ||
-            /^(components\/.*\.vue|components\/primitives\/icons\.js|composables\/.*\.js|utils\/.*\.js|styles\/.*\.css|fonts\/.*\.woff2|docs\/(?:API|MIGRATION)\.md)$/.test(name),
+            /^(components\/.*\.vue|components\/primitives\/icons\.js|composables\/.*\.(?:js|ts)|utils\/.*\.(?:js|ts)|styles\/.*\.css|fonts\/.*\.woff2|docs\/(?:API|MIGRATION)\.md)$/.test(name),
         "Unexpected package file: " + name,
     );
 }
