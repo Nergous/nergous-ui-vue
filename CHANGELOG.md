@@ -3,6 +3,14 @@
 All notable changes to the nergous-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Changed — 2026-09-16
+
+- Renamed package and repository from `nergous-cit-ui-vue` to
+  `nergous-ui-vue`. Update dependency names, import paths, vendored folder
+  names and GitHub URLs before consuming future releases.
+
 ## v1.0.2 — 2026-09-15
 
 ### Production stabilization — 2026-09-15
