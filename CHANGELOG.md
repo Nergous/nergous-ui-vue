@@ -3,7 +3,7 @@
 All notable changes to the nergous-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## v1.0.4 - 2026-09-17
 
 ### Fixed
 
