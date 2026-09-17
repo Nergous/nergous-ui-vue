@@ -1,16 +1,24 @@
-<script setup>
+<script setup lang="ts">
 // NLightbox — fullscreen image viewer overlay. Dialog semantics with focus trap,
 // scroll lock and Escape/Arrow keys. Presentation-only: pass items + v-model:index.
-import { ref, watch, onUnmounted } from "vue";
+import { ref, watch, onUnmounted, type PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFocusTrap } from "../../composables/useFocusTrap.ts";
 import { useScrollLock } from "../../composables/useScrollLock.ts";
 import { useDismiss } from "../../composables/useDismiss.ts";
 import { useInert } from "../../composables/useInert.ts";
 
+interface LightboxItem {
+    url: string;
+    caption?: string;
+}
+
 const props = defineProps({
     // [{ url, caption }] — caption doubles as the image alt text.
-    items: { type: Array, default: () => [] },
+    items: {
+        type: Array as PropType<LightboxItem[]>,
+        default: () => [],
+    },
     // Current item index; -1 = closed. Use with v-model:index.
     index: { type: Number, default: -1 },
     // Accessible labels — English defaults; pass localized strings at the call site.
@@ -19,25 +27,28 @@ const props = defineProps({
     prevLabel: { type: String, default: "Previous" },
     nextLabel: { type: String, default: "Next" },
 });
-const emit = defineEmits(["update:index"]);
+const emit = defineEmits<{
+    "update:index": [index: number];
+}>();
 
-const root = ref(null);
-const isOpen = () => props.index >= 0 && !!props.items[props.index];
+const root = ref<HTMLElement | null>(null);
+const isOpen = (): boolean =>
+    props.index >= 0 && !!props.items[props.index];
 
-function close() {
+function close(): void {
     emit("update:index", -1);
 }
-function prev() {
+function prev(): void {
     if (props.index > 0) emit("update:index", props.index - 1);
 }
-function next() {
+function next(): void {
     if (props.index < props.items.length - 1)
         emit("update:index", props.index + 1);
 }
 
 // Arrow navigation. Escape is handled by useDismiss (topmost-overlay-only),
 // Tab cycling and focus return by useFocusTrap.
-function onKey(e) {
+function onKey(e: KeyboardEvent): void {
     if (!isOpen() || !isTop()) return;
     if (e.key === "ArrowLeft") prev();
     else if (e.key === "ArrowRight") next();

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {
     ref,
     watch,
@@ -7,6 +7,7 @@ import {
     onUpdated,
     onBeforeUnmount,
     useId,
+    type PropType,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFloating } from "../../composables/useFloating.ts";
@@ -15,28 +16,44 @@ import { useFloating } from "../../composables/useFloating.ts";
 // { open }). Emits `select` with the chosen item; that item's action?.() also runs.
 // items: [{ label, icon?, danger?, divider?, selected?, action? }]. align: left | right.
 // Keyboard: ↓/Enter/Space open & focus first item; ↑/↓/Home/End move; Esc/Tab close.
+type DropdownAlign = "left" | "right";
+
+interface DropdownItem {
+    label?: string;
+    icon?: string;
+    danger?: boolean;
+    divider?: boolean;
+    selected?: boolean;
+    action?: () => void;
+}
+
 const props = defineProps({
-    items: { type: Array, default: () => [] },
+    items: {
+        type: Array as PropType<DropdownItem[]>,
+        default: () => [],
+    },
     align: {
-        type: String,
+        type: String as PropType<DropdownAlign>,
         default: "left",
-        validator: (v) => ["left", "right"].includes(v),
+        validator: (value: string) => ["left", "right"].includes(value),
     }, // left | right
 });
-const emit = defineEmits(["select"]);
+const emit = defineEmits<{
+    select: [item: DropdownItem];
+}>();
 
 const open = ref(false);
-const root = ref(null);
-const menuEl = ref(null);
+const root = ref<HTMLElement | null>(null);
+const menuEl = ref<HTMLElement | null>(null);
 const floating = useFloating(root, menuEl, open, {
     matchWidth: false,
     align: () => props.align,
 });
 const menuId = useId();
-const triggerEl = ref(null);
+const triggerEl = ref<HTMLElement | null>(null);
 // Preserve the legacy slot API while placing state on its real interactive
 // control rather than an anonymous span (invalid ARIA for aria-expanded).
-function syncTrigger() {
+function syncTrigger(): void {
     const wrapper = triggerEl.value;
     if (!wrapper) return;
     const control =
@@ -55,19 +72,21 @@ function syncTrigger() {
 }
 onMounted(syncTrigger);
 onUpdated(syncTrigger);
-let triggerReturnEl = null; // element focus returns to on close
+let triggerReturnEl: HTMLElement | null = null;
 
-function menuItems() {
+function menuItems(): HTMLElement[] {
     return menuEl.value
-        ? Array.from(menuEl.value.querySelectorAll(".n-dd__item"))
+        ? Array.from(
+              menuEl.value.querySelectorAll<HTMLElement>(".n-dd__item"),
+          )
         : [];
 }
-function focusItem(i) {
+function focusItem(i: number): void {
     const items = menuItems();
     if (items.length) items[(i + items.length) % items.length].focus();
 }
 
-function openMenu(focusFirst) {
+function openMenu(focusFirst: boolean): void {
     triggerReturnEl =
         document.activeElement instanceof HTMLElement
             ? document.activeElement
@@ -75,15 +94,15 @@ function openMenu(focusFirst) {
     open.value = true;
     if (focusFirst) nextTick(() => focusItem(0));
 }
-function closeMenu(returnFocus) {
+function closeMenu(returnFocus: boolean): void {
     open.value = false;
     if (returnFocus && triggerReturnEl) triggerReturnEl.focus();
 }
-function toggle() {
+function toggle(): void {
     open.value ? closeMenu(false) : openMenu(true);
 }
 
-function onTriggerKeydown(e) {
+function onTriggerKeydown(e: KeyboardEvent): void {
     if (e.key === "Escape" && open.value) {
         e.preventDefault();
         closeMenu(true);
@@ -94,10 +113,14 @@ function onTriggerKeydown(e) {
         openMenu(true);
     }
 }
-function onMenuKeydown(e) {
+function onMenuKeydown(e: KeyboardEvent): void {
     const items = menuItems();
     if (!items.length) return;
-    const cur = items.indexOf(document.activeElement);
+    const activeElement = document.activeElement;
+    const cur =
+        activeElement instanceof HTMLElement
+            ? items.indexOf(activeElement)
+            : -1;
     switch (e.key) {
         case "ArrowDown":
             e.preventDefault();
@@ -125,18 +148,20 @@ function onMenuKeydown(e) {
     }
 }
 
-function pick(it) {
-    if (it.divider) return;
+function pick(item: DropdownItem): void {
+    if (item.divider) return;
     closeMenu(true);
-    it.action?.();
-    emit("select", it);
+    item.action?.();
+    emit("select", item);
 }
 
-function onDocClick(e) {
+function onDocClick(e: MouseEvent): void {
+    const target = e.target;
+    if (!(target instanceof Node)) return;
     if (
         root.value &&
-        !root.value.contains(e.target) &&
-        !menuEl.value?.contains(e.target)
+        !root.value.contains(target) &&
+        !menuEl.value?.contains(target)
     )
         closeMenu(false);
 }

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {
     ref,
     computed,
@@ -7,6 +7,7 @@ import {
     onBeforeUnmount,
     nextTick,
     useId,
+    type PropType,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFocusTrap } from "../../composables/useFocusTrap.ts";
@@ -20,9 +21,19 @@ import { useInert } from "../../composables/useInert.ts";
 // Props: placeholder, emptyText, navHint, selectHint (English defaults; app localizes),
 //        shortcut (bind Cmd/Ctrl+K globally), filter (false = parent owns filtering).
 // commands: [{ label, icon?, hint?, action? }]
+interface CommandItem {
+    label: string;
+    icon?: string;
+    hint?: string;
+    action?: () => void;
+}
+
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
-    commands: { type: Array, default: () => [] },
+    commands: {
+        type: Array as PropType<CommandItem[]>,
+        default: () => [],
+    },
     placeholder: { type: String, default: "Search…" },
     emptyText: { type: String, default: "No results" },
     navHint: { type: String, default: "Navigate" },
@@ -30,16 +41,20 @@ const props = defineProps({
     shortcut: { type: Boolean, default: true }, // bind Cmd/Ctrl+K
     filter: { type: Boolean, default: true }, // false: parent owns filtering (server search)
 });
-const emit = defineEmits(["update:modelValue", "run", "update:query"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: boolean];
+    run: [command: CommandItem];
+    "update:query": [query: string];
+}>();
 
 const query = ref("");
 const index = ref(0);
-const inputEl = ref(null);
-const dialogEl = ref(null);
-const overlayEl = ref(null);
+const inputEl = ref<HTMLInputElement | null>(null);
+const dialogEl = ref<HTMLElement | null>(null);
+const overlayEl = ref<HTMLElement | null>(null);
 const baseId = useId();
 const listId = `${baseId}-list`;
-const optId = (i) => `${baseId}-opt-${i}`;
+const optId = (index: number): string => `${baseId}-opt-${index}`;
 
 const results = computed(() => {
     if (!props.filter) return props.commands;
@@ -62,14 +77,14 @@ useScrollLock(() => props.modelValue);
 // Escape closes only the topmost overlay (shared dismiss stack), not the whole stack.
 useDismiss(() => props.modelValue, close);
 
-function close() {
+function close(): void {
     emit("update:modelValue", false);
 }
-function run(c) {
-    if (!c) return;
+function run(command: CommandItem | undefined): void {
+    if (!command) return;
     close();
-    c.action?.();
-    emit("run", c);
+    command.action?.();
+    emit("run", command);
 }
 
 watch(
@@ -97,7 +112,7 @@ watch([index, results], () =>
     }),
 );
 
-function onKey(e) {
+function onKey(e: KeyboardEvent): void {
     const k = (e.key || "").toLowerCase();
     if (props.shortcut && (e.metaKey || e.ctrlKey) && k === "k") {
         e.preventDefault();
