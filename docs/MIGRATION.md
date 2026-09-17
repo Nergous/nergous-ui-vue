@@ -16,7 +16,7 @@ Choose an explicitly published version or an approved local archive.
    `nergouscit-reset` selector is retained as a compatibility alias.
 6. Update the early HTML anti-flash script using the guarded/validated example
    in README. New keys: nergous-ui-vue-theme and nergous-ui-vue-density.
-   Legacy nergouscit-theme/density values are read if new keys are absent; old keys
+   Legacy nergous-ui-theme/density values are read if new keys are absent; old keys
    are not deleted. The canonical constants remain exported.
 7. Verify forms, popups, keyboard focus, themes/densities and mobile layout in the
    consumer before removing the old snapshot.

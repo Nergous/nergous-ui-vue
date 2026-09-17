@@ -48,11 +48,11 @@ function isAllowed<T extends string>(
 
 // Module-level singleton state shared across every useTheme() caller.
 const theme = ref<Theme>(
-    stored(THEME_STORAGE_KEY, "light", themes, "nergouscit-theme"),
+    stored(THEME_STORAGE_KEY, "light", themes, "nergous-ui-theme"),
 );
 
 const density = ref<Density>(
-    stored(DENSITY_STORAGE_KEY, "comfortable", densities, "nergouscit-density"),
+    stored(DENSITY_STORAGE_KEY, "comfortable", densities, "nergous-ui-density"),
 );
 
 // Reflect the current theme/density onto <html> so tokens.css can react to them.

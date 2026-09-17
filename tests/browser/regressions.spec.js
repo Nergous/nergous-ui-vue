@@ -251,8 +251,8 @@ test("theme survives unavailable and invalid storage, preserves renamed legacy p
 });
 test("theme validates storage and migrates legacy reads", async ({ page }) => {
     await page.addInitScript(() => {
-        localStorage.setItem("nergouscit-theme", "dark");
-        localStorage.setItem("nergouscit-density", "compact");
+        localStorage.setItem("nergous-ui-theme", "dark");
+        localStorage.setItem("nergous-ui-density", "compact");
     });
     await load(page, "storage");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
