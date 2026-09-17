@@ -1,6 +1,15 @@
-<script setup>
-import { useRovingRadio } from "../../composables/useRovingRadio.js";
+<script setup lang="ts">
+import type { PropType } from "vue";
+import { useRovingRadio } from "../../composables/useRovingRadio.ts";
 import { useFormField } from "../../composables/useFormField.ts";
+
+type RadioValue = string | number;
+
+interface RadioOption {
+    value: RadioValue;
+    label: string;
+    disabled?: boolean;
+}
 
 // NRadioGroup — single-choice radio buttons. v-model holds the selected value.
 // options: [{ value, label }]. Give the group an `aria-label`.
@@ -8,10 +17,11 @@ import { useFormField } from "../../composables/useFormField.ts";
 // Keyboard (WAI-ARIA radiogroup) lives in useRovingRadio: ←/↑/→/↓ + Home/End,
 // selection follows focus, and the group is a single Tab stop.
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    options: { type: Array, default: () => [] },
+    modelValue: { type: [String, Number] as PropType<RadioValue>, default: "" },
+    options: { type: Array as PropType<RadioOption[]>, default: () => [] },
 });
-const emit = defineEmits(["update:modelValue"]);
+
+const emit = defineEmits<{"update:modelValue": [value: RadioValue]}>();
 
 const { setBtnRef, tabStop, select, onKeydown } = useRovingRadio(
     () => props.options,

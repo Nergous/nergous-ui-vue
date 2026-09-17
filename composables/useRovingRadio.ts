@@ -1,4 +1,19 @@
-import { ref, computed } from "vue";
+import { ref, computed, type ComponentPublicInstance, type ComputedRef } from "vue";
+
+interface RovingOption<T> {
+    value: T;
+}
+
+type TemplateRef = Element | ComponentPublicInstance | null;
+
+export interface RovingRadioResult {
+    setBtnRef(index: number): (element: TemplateRef) => void;
+    selectedIndex: ComputedRef<number>;
+    tabStop: ComputedRef<number>;
+    select(index: number): void;
+    onKeydown(event: KeyboardEvent): void;
+}
+
 
 /**
  * useRovingRadio — shared WAI-ARIA radio group behaviour for single-choice
@@ -13,11 +28,16 @@ import { ref, computed } from "vue";
  * @param {(value) => void}  onSelect   called with the chosen option's value
  * @returns {{ setBtnRef, selectedIndex, tabStop, select, onKeydown }}
  */
-export function useRovingRadio(getOptions, getValue, onSelect) {
+export function useRovingRadio<T>(
+    getOptions: () => readonly RovingOption<T>[],
+    getValue: () => T,
+    onSelect: (value: T) => void,
+): RovingRadioResult {
     // Collect each option's button element by index, so we can move focus.
-    const btns = ref([]);
-    const setBtnRef = (i) => (el) => {
-        if (el) btns.value[i] = el;
+    const btns = ref<HTMLButtonElement[]>([]);
+
+    const setBtnRef = (i: number) => (el: TemplateRef) => {
+        if (el instanceof HTMLButtonElement) btns.value[i] = el;
     };
 
     const selectedIndex = computed(() =>
@@ -30,7 +50,7 @@ export function useRovingRadio(getOptions, getValue, onSelect) {
     );
 
     // Select the option at index i (no-op if unchanged) and move focus to it.
-    function select(i) {
+    function select(i: number) {
         const opt = getOptions()[i];
         if (!opt) return;
         if (opt.value !== getValue()) onSelect(opt.value);
@@ -38,11 +58,12 @@ export function useRovingRadio(getOptions, getValue, onSelect) {
     }
 
     // Arrow/Home/End navigation; selection follows focus.
-    function onKeydown(e) {
+    function onKeydown(e: KeyboardEvent) {
         const n = getOptions().length;
         if (!n) return;
+
         const cur = selectedIndex.value >= 0 ? selectedIndex.value : 0;
-        let next;
+        let next: number;
         switch (e.key) {
             case "ArrowRight":
             case "ArrowDown":

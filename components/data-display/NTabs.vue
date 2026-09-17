@@ -1,6 +1,15 @@
-<script setup>
-import { computed, useId } from "vue";
-import { useRovingRadio } from "../../composables/useRovingRadio.js";
+<script setup lang="ts">
+import { computed, useId, type PropType } from "vue";
+import { useRovingRadio } from "../../composables/useRovingRadio.ts";
+
+
+type TabValue = string | number;
+
+interface TabOption {
+    value: TabValue;
+    label: string;
+    disabled?: boolean;
+}
 
 // NTabs — horizontal WAI-ARIA tablist. v-model holds the active tab value.
 // tabs: [{ value, label }]. Roving tabindex + ←/↑/→/↓ + Home/End with selection
@@ -11,16 +20,20 @@ import { useRovingRadio } from "../../composables/useRovingRadio.js";
 // Each tab already points aria-controls at that panel id. Without `id-base` the
 // ids are auto-generated and panels can't be linked deterministically.
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    tabs: { type: Array, default: () => [] },
+    modelValue: { type: [String, Number] as PropType<TabValue>, default: "" },
+    tabs: { type: Array as PropType<TabOption[]>, default: () => [] },
     idBase: { type: String, default: "" },
 });
-const emit = defineEmits(["update:modelValue"]);
+
+const emit = defineEmits<{
+    "update:modelValue": [value: TabValue];
+}>();
 
 const generatedId = useId();
 const baseId = computed(() => props.idBase || generatedId);
-const tabId = (value) => `${baseId.value}-${value}`;
-const panelId = (value) => `${baseId.value}-panel-${value}`;
+
+const tabId = (value: TabValue): string => `${baseId.value}-${value}`;
+const panelId = (value: TabValue): string => `${baseId.value}-panel-${value}`;
 
 const { setBtnRef, tabStop, select, onKeydown } = useRovingRadio(
     () => props.tabs,

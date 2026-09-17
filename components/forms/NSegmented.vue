@@ -1,7 +1,17 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
-import { useRovingRadio } from "../../composables/useRovingRadio.js";
+import { useRovingRadio } from "../../composables/useRovingRadio.ts";
 import { useFormField } from "../../composables/useFormField.ts";
+
+type SegmentedValue = string | number;
+
+type SegmentedOption = {
+    value: SegmentedValue;
+    label: string;
+    icon?: string;
+    disabled?: boolean;
+};
 
 // NSegmented — single-choice segmented control. Semantically a radio group,
 // visually an inline button group. v-model holds the selected value.
@@ -11,10 +21,11 @@ import { useFormField } from "../../composables/useFormField.ts";
 // Keyboard (WAI-ARIA radiogroup) lives in useRovingRadio: ←/↑/→/↓ + Home/End,
 // selection follows focus, and the group is a single Tab stop.
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    options: { type: Array, default: () => [] },
+    modelValue: { type: [String, Number] as PropType<SegmentedValue>, default: "" },
+    options: { type: Array as PropType<SegmentedOption[]>, default: () => [] },
 });
-const emit = defineEmits(["update:modelValue"]);
+
+const emit = defineEmits<{"update:modelValue": [value: SegmentedValue]}>();
 
 const { setBtnRef, tabStop, select, onKeydown } = useRovingRadio(
     () => props.options,

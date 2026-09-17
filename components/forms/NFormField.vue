@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // NFormField — labelled form field: label + control slot + error / hint message.
 // Associates its message and state with the nested DS control through a
 // provide/inject contract (useFormField), wiring aria-describedby / aria-invalid /
