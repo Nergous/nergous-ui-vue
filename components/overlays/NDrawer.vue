@@ -1,10 +1,10 @@
 <script setup>
 import { ref, useId } from "vue";
 import NIcon from "../primitives/NIcon.vue";
-import { useFocusTrap } from "../../composables/useFocusTrap.js";
+import { useFocusTrap } from "../../composables/useFocusTrap.ts";
 import { useScrollLock } from "../../composables/useScrollLock.js";
 import { useDismiss } from "../../composables/useDismiss.js";
-import { useInert } from "../../composables/useInert.js";
+import { useInert } from "../../composables/useInert.ts";
 
 // NDrawer — slide-in side panel. v-model controls open state; emits `close` on dismiss.
 // Props: title, subtitle, width, closeLabel. Default slot is the body; #footer slot

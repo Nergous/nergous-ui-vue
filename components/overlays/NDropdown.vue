@@ -9,7 +9,7 @@ import {
     useId,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
-import { useFloating } from "../../composables/useFloating.js";
+import { useFloating } from "../../composables/useFloating.ts";
 
 // NDropdown — WAI-ARIA menu button. Trigger goes in the default slot (receives
 // { open }). Emits `select` with the chosen item; that item's action?.() also runs.

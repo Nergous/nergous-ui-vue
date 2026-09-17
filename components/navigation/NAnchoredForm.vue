@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import NAnchorNav from "./NAnchorNav.vue";
-import { useScrollSpy } from "../../composables/useScrollSpy.js";
+import { useScrollSpy } from "../../composables/useScrollSpy.ts";
 
 // NAnchoredForm — single-page editor shell for large records: a sticky
 // table-of-contents rail (NAnchorNav) beside one scrollable column of sections.

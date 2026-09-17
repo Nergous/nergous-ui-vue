@@ -36,7 +36,7 @@ import NInput from "./NInput.vue";
 import NButton from "./NButton.vue";
 import NFormField from "./NFormField.vue";
 import { useFormField } from "../../composables/useFormField.js";
-import { sanitizeHtml, safeUrl } from "../../utils/sanitize.js";
+import { sanitizeHtml, safeUrl } from "../../utils/sanitize.ts";
 
 const props = defineProps({
     modelValue: { type: String, default: "" },

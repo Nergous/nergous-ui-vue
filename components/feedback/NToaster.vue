@@ -2,7 +2,7 @@
 // NToaster — toast notifications container. Mount once near the app root;
 // push messages from anywhere via useToast() (success / error / warning / info).
 // Locale-agnostic: pass regionLabel / dismissLabel (English defaults).
-import { useToast } from "../../composables/useToast.js";
+import { useToast } from "../../composables/useToast.ts";
 import NIcon from "../primitives/NIcon.vue";
 
 defineProps({

@@ -10,7 +10,7 @@ import {
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFormField } from "../../composables/useFormField.js";
-import { useFloating } from "../../composables/useFloating.js";
+import { useFloating } from "../../composables/useFloating.ts";
 
 // NSelect — custom listbox styled to the design system (replaces the native
 // <select> popup, which can't be themed cross-browser).

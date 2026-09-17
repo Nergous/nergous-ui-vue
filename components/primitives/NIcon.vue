@@ -3,7 +3,7 @@
 // Decorative by default (aria-hidden); pass `title` to expose it as a labelled image.
 // The icon registry lives in ./icons.js — this component is just the renderer.
 import { computed } from "vue";
-import { PATHS, CIRCLES } from "./icons.js";
+import { PATHS, CIRCLES } from "./icons.ts";
 
 const props = defineProps({
     name: { type: String, required: true },

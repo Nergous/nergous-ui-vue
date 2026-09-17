@@ -9,10 +9,10 @@ import {
     useId,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
-import { useFocusTrap } from "../../composables/useFocusTrap.js";
+import { useFocusTrap } from "../../composables/useFocusTrap.ts";
 import { useScrollLock } from "../../composables/useScrollLock.js";
 import { useDismiss } from "../../composables/useDismiss.js";
-import { useInert } from "../../composables/useInert.js";
+import { useInert } from "../../composables/useInert.ts";
 
 // NCommandPalette — ⌘K / Ctrl+K command launcher (modal combobox). v-model controls
 // open state. Emits `run` with the chosen command (its action?.() also runs) and

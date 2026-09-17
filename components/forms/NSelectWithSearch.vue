@@ -10,8 +10,8 @@ import {
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFormField } from "../../composables/useFormField.js";
-import { useFloating } from "../../composables/useFloating.js";
-import { focusableWithin } from "../../composables/useFocusTrap.js";
+import { useFloating } from "../../composables/useFloating.ts";
+import { focusableWithin } from "../../composables/useFocusTrap.ts";
 
 // NSelectWithSearch — single-select listbox with a client-side search box.
 // Same value contract as NSelect (v-model + :options [{value,label,disabled?}]);
