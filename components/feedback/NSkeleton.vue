@@ -17,7 +17,7 @@ defineProps({
             width,
             height: circle ? 'auto' : height,
             borderRadius: circle ? '50%' : radius,
-            aspectRatio: circle ? '1 / 1' : null,
+            aspectRatio: circle ? '1 / 1' : undefined,
         }"
     />
 </template>

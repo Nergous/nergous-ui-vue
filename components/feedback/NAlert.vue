@@ -1,6 +1,8 @@
-<script setup>
-import { computed } from "vue";
+<script setup lang="ts">
+import { computed, type PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
+
+type AlertTone = "info" | "ok" | "warn" | "danger";
 
 // NAlert — inline notification banner. Default slot is the message body.
 // Props: title, icon (overrides the tone default). tone picks colors + default icon.
@@ -10,21 +12,22 @@ import NIcon from "../primitives/NIcon.vue";
 // pass `role` to override.
 const props = defineProps({
     tone: {
-        type: String,
+        type: String as PropType<AlertTone>,
         default: "info",
-        validator: (v) => ["info", "ok", "warn", "danger"].includes(v),
+        validator: (v: string) => ["info", "ok", "warn", "danger"].includes(v),
     },
     title: { type: String, default: "" },
     icon: { type: String, default: "" },
     role: { type: String, default: "" },
 });
 // danger/warn share the warning triangle (matches NToaster); tone color = severity.
-const DEFAULT_ICON = {
+const DEFAULT_ICON: Record<AlertTone, string> = {
     info: "bell",
     ok: "check",
     warn: "alert-triangle",
     danger: "alert-triangle",
 };
+
 const liveRole = computed(
     () =>
         props.role ||

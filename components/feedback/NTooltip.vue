@@ -1,5 +1,7 @@
-<script setup>
-import { useId } from "vue";
+<script setup lang="ts">
+import { useId, type PropType } from "vue";
+
+type TooltipPlacement = "top" | "bottom" | "left" | "right";
 
 // NTooltip — CSS-only hover/focus tooltip. Default slot is the trigger.
 // Props: content (text), placement (top | bottom | left | right).
@@ -11,9 +13,9 @@ import { useId } from "vue";
 const props = defineProps({
     content: { type: String, default: "" },
     placement: {
-        type: String,
+        type: String as PropType<TooltipPlacement>,
         default: "top",
-        validator: (v) => ["top", "bottom", "left", "right"].includes(v),
+        validator: (v: string) => ["top", "bottom", "left", "right"].includes(v),
     }, // top | bottom | left | right
 });
 const tipId = useId();

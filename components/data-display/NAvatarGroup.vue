@@ -1,12 +1,12 @@
-<script setup>
-import { computed } from "vue";
+<script setup lang="ts">
+import { computed, type PropType } from "vue";
 import NAvatar from "./NAvatar.vue";
 
 // NAvatarGroup — overlapping stack of avatars with a "+N" overflow chip.
 // max = how many to render before collapsing the rest into the counter.
 // items: array of names (strings)
 const props = defineProps({
-    items: { type: Array, default: () => [] },
+    items: { type: Array as PropType<string[]>, default: () => [] },
     max: { type: Number, default: 4 },
     size: { type: Number, default: 38 },
 });

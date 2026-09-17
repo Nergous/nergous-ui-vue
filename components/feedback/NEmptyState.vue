@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import NIcon from "../primitives/NIcon.vue";
 
 // NEmptyState — placeholder for empty / no-results views.

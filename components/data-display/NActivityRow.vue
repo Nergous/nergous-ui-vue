@@ -1,18 +1,21 @@
-<script setup>
+<script setup lang="ts">
 // NActivityRow — presentational activity-feed row. Locale-agnostic and
 // domain-agnostic: it renders structure + tones from props only. The
 // consuming page supplies the localized verb, the tone/icon mapping, the
 // subject-type tag, and the meta strings. Keep this component free of any
 // app-specific text or action enum so it stays reusable across SPAs.
+import type { PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import NBadge from "./NBadge.vue";
+
+type ActivityTone = "ok" | "info" | "danger" | "warn" | "accent";
 
 defineProps({
     // ok | info | danger | warn | accent — drives the icon-chip background/color.
     tone: {
-        type: String,
+        type: String as PropType<ActivityTone>,
         default: "info",
-        validator: (v) =>
+        validator: (v: string) =>
             ["ok", "info", "danger", "warn", "accent"].includes(v),
     },
     icon: { type: String, default: "" }, // NIcon name

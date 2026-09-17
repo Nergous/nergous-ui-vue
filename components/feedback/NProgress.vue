@@ -3,13 +3,6 @@ import { computed, useId, type PropType } from "vue";
 
 type ProgressTone = "accent" | "ok" | "warn" | "danger";
 
-const PROGRESS_TONES: readonly ProgressTone[] = [
-    "accent",
-    "ok",
-    "warn",
-    "danger",
-]
-
 const COLORS: Record<ProgressTone, string> = {
     accent: "var(--accent)",
     ok: "var(--ok)",
@@ -27,7 +20,7 @@ const props = defineProps({
     tone: {
         type: String as PropType<ProgressTone>,
         default: "accent",
-        validator: (v: string) => PROGRESS_TONES.some((tone) => tone === v),
+        validator: (v: string) => ["accent", "ok", "warn", "danger"].includes(v),
     },
 });
 

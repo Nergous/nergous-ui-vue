@@ -1,6 +1,8 @@
-<script setup>
-import { computed } from "vue";
+<script setup lang="ts">
+import { computed, type PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
+
+type StatTrend = "up" | "down";
 
 // NStatCard — KPI/metric tile. Props: label, value, sub (caption line), icon.
 // Optional extras: delta (change text), trend (up | down) colors the delta,
@@ -14,25 +16,30 @@ const props = defineProps({
     trend: {
         type: String,
         default: "up",
-        validator: (v) => ["up", "down"].includes(v),
+        validator: (v: string) => ["up", "down"].includes(v),
     }, // up | down
-    spark: { type: Array, default: () => [] },
+    spark: { type: Array as PropType<number[]>, default: () => [] },
     icon: { type: String, default: "" },
 });
 
 const spark = computed(() => {
     const d = props.spark;
     if (!d || d.length < 2) return null;
+
     const w = 120,
         h = 36,
         p = 3;
+
     const max = Math.max(...d),
         min = Math.min(...d);
-    const x = (i) => p + (i / (d.length - 1)) * (w - 2 * p);
-    const y = (v) => h - p - ((v - min) / (max - min || 1)) * (h - 2 * p);
+
+    const x = (i: number): number => p + (i / (d.length - 1)) * (w - 2 * p);
+    const y = (v: number): number => h - p - ((v - min) / (max - min || 1)) * (h - 2 * p);
+
     const line =
         "M " +
         d.map((v, i) => x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" L ");
+
     return line;
 });
 </script>
