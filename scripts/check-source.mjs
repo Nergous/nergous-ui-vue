@@ -22,12 +22,26 @@ const sources = [
     ...components,
     ...files("examples").filter((f) => f.endsWith(".vue")),
 ];
-const entry = fs.readFileSync("index.js", "utf8");
+const entry = fs.readFileSync("index.ts", "utf8");
+const legacyEntry = fs.readFileSync("index.js", "utf8");
 const types = fs.readFileSync("index.d.ts", "utf8");
 for (const f of components) {
     const name = path.basename(f, ".vue");
     assert.ok(entry.includes(name), name);
+    assert.ok(legacyEntry.includes(name), name + " missing legacy export");
     assert.ok(types.includes("const " + name + ":"), name + " missing types");
+}
+for (const name of [
+    "useTheme",
+    "THEME_STORAGE_KEY",
+    "DENSITY_STORAGE_KEY",
+    "useToast",
+    "useScrollSpy",
+    "createFormat",
+    "toDate",
+]) {
+    assert.ok(entry.includes(name), name);
+    assert.ok(legacyEntry.includes(name), name + " missing legacy export");
 }
 for (const [i, f] of sources.entries()) {
     const { descriptor, errors } = parse(fs.readFileSync(f, "utf8"), {

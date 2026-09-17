@@ -5,7 +5,7 @@ import {
     deactivateOverlay,
     isTopOverlay,
     type OverlayRoot
-} from "./useOverlayStack.js";
+} from "./useOverlayStack.ts";
 
 type ActiveSource = Ref<boolean> | (() => boolean);
 

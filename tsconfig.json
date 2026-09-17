@@ -5,7 +5,7 @@
         "moduleResolution": "Bundler",
         "allowImportingTsExtensions": true,
         "types": [
-                    "vite/client"
+            "vite/client"
         ],
         "lib": [
             "ES2022",
@@ -22,6 +22,7 @@
     },
     "include": [
         "index.js",
+        "index.ts",
         "components/**/*.vue",
         "composables/**/*.js",
         "composables/**/*.ts",

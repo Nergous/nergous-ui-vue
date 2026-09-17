@@ -12,7 +12,7 @@
 //   • on deactivation / unmount: restores focus to the previously active element
 //     and detaches its listeners. No external dependencies.
 import { watch, onMounted, onBeforeUnmount, nextTick, type Ref } from "vue";
-import { overlayOwner, isTopOverlay } from "./useOverlayStack.js";
+import { overlayOwner, isTopOverlay } from "./useOverlayStack.ts";
 
 interface ComponentWithElement {
     $el: HTMLElement;

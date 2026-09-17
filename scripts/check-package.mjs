@@ -40,6 +40,7 @@ const packed = JSON.parse(
 const names = packed.files.map((f) => f.path);
 for (const required of [
     "index.js",
+    "index.ts",
     "index.d.ts",
     "styles/tokens.css",
     "utils/sanitize.ts",
@@ -49,7 +50,7 @@ for (const required of [
 
 assert.equal(names.filter((f) => f.endsWith(".woff2")).length, 8);
 const allowedRootFiles = new Set([
-    "package.json", "index.js", "index.d.ts", "README.md", "CHANGELOG.md", "LICENSE",
+    "package.json", "index.js", "index.ts", "index.d.ts", "README.md", "CHANGELOG.md", "LICENSE",
 ]);
 
 for (const name of names) {

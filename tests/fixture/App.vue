@@ -1,7 +1,7 @@
 <script setup>
 import { ref, defineComponent, h } from "vue";
 import * as ds from "@ds";
-import { sanitizeHtml, safeUrl } from "@internal/utils/sanitize.js";
+import { sanitizeHtml, safeUrl } from "@internal/utils/sanitize.ts";
 const {
     NRichText,
     NButton,
