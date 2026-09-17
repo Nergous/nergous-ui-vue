@@ -2,7 +2,8 @@
 // Each entry is a list of SVG path `d` strings; a few icons add primitives via CIRCLES.
 // Kept separate from NIcon.vue so the data is reusable/testable and the component
 // stays a thin renderer.
-export const PATHS = {
+
+export const PATHS: Readonly<Record<string, readonly string[]>> = {
     home: ["m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z", "M9 22V12h6v10"],
     users: [
         "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2",
@@ -141,12 +142,18 @@ export const PATHS = {
     ],
 };
 
+export interface IconCircle {
+    cx: number;
+    cy: number;
+    r: number;
+}
+
 // Extra non-path primitives keyed by icon name (rendered as <circle>).
-export const CIRCLES = {
+export const CIRCLES: Readonly<Record<string, IconCircle>> = {
     search: { cx: 11, cy: 11, r: 7 },
     asset: { cx: 8.5, cy: 9.5, r: 1.3 },
     eye: { cx: 12, cy: 12, r: 3 },
 };
 
 // All known icon names — handy for validation, pickers, or docs.
-export const ICON_NAMES = Object.keys(PATHS);
+export const ICON_NAMES: string[] = Object.keys(PATHS);

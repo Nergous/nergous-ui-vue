@@ -1,21 +1,35 @@
-import { ref, watch, nextTick, onBeforeUnmount } from "vue";
+import { ref, watch, nextTick, onBeforeUnmount, type CSSProperties, type Ref } from "vue";
+
+type FloatingAlign = "left" | "right"
+
+interface FloatingOptions {
+    matchWidth?: boolean;
+    align?: FloatingAlign | (() => FloatingAlign);
+}
+
+export interface FloatingState {
+    target: Ref<string | HTMLElement>;
+    style: Ref<CSSProperties>;
+}
 
 // Keep existing popups out of scroll-clipping bodies, but inside their overlay
 // owner so inertness, focus trapping and layer order remain consistent.
 export function useFloating(
-    anchor,
-    popup,
-    open,
-    { matchWidth = true, align = "left" } = {},
-) {
-    const target = ref("body");
-    const style = ref({});
-    let resize;
+    anchor: Ref<HTMLElement | null>,
+    popup: Ref<HTMLElement | null>,
+    open: Ref<boolean>,
+    { matchWidth = true, align = "left" }: FloatingOptions = {},
+): FloatingState {
+    const target = ref<string | HTMLElement>("body");
+    const style = ref<CSSProperties>({});
+    let resize: ResizeObserver | null = null;
+
     function position() {
         if (!open.value || !anchor.value || !popup.value) return;
+
         const rect = anchor.value.getBoundingClientRect();
-        const gap = 6,
-            margin = 8;
+        const gap = 6;
+        const margin = 8;
         const width = Math.min(
             matchWidth
                 ? rect.width
@@ -24,11 +38,9 @@ export function useFloating(
         );
         const below = window.innerHeight - rect.bottom - gap - margin;
         const above = rect.top - gap - margin;
-        const flip =
-            below < Math.min(popup.value.scrollHeight, 280) && above > below;
+        const flip = below < Math.min(popup.value.scrollHeight, 280) && above > below;
         const height = Math.max(0, flip ? above : below);
-        const rightAligned =
-            (typeof align === "function" ? align() : align) === "right";
+        const rightAligned = (typeof align === "function" ? align() : align) === "right";
         const left = Math.max(
             margin,
             Math.min(
@@ -36,6 +48,7 @@ export function useFloating(
                 window.innerWidth - width - margin,
             ),
         );
+
         style.value = {
             position: "fixed",
             left: `${left}px`,
@@ -48,20 +61,21 @@ export function useFloating(
             zIndex: target.value === document.body ? 1250 : 2,
         };
     }
+
     function stop() {
         window.removeEventListener("resize", position);
         document.removeEventListener("scroll", position, true);
         resize?.disconnect();
         resize = null;
     }
+
     watch(
         open,
         async (on) => {
             if (typeof document === "undefined") return;
             stop();
             if (!on) return;
-            target.value =
-                anchor.value?.closest("[data-overlay]") || document.body;
+            target.value = anchor.value?.closest<HTMLElement>("[data-overlay]") ?? document.body;
             // Body popups must clear normal navigation; overlay-local popups only
             // need to clear their own panel content.
             await nextTick();
@@ -72,6 +86,7 @@ export function useFloating(
                 position();
                 if (target.value === document.body) style.value.zIndex = 1250;
             });
+
             if (anchor.value) resize.observe(anchor.value);
             if (popup.value) resize.observe(popup.value);
             window.addEventListener("resize", position);
@@ -82,5 +97,6 @@ export function useFloating(
     onBeforeUnmount(() => {
         if (typeof window !== "undefined") stop();
     });
+
     return { target, style };
 }
