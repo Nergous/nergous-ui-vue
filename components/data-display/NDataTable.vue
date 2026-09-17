@@ -1,5 +1,11 @@
-<script setup>
-import { ref, computed, getCurrentInstance, watch } from "vue";
+<script setup lang="ts">
+import {
+    ref,
+    computed,
+    getCurrentInstance,
+    watch,
+    type PropType,
+} from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import NCheckbox from "../forms/NCheckbox.vue";
 import NPagination from "./NPagination.vue";
@@ -12,12 +18,40 @@ import NPagination from "./NPagination.vue";
 // Locale-agnostic: all visible text comes from props with neutral English defaults;
 // the app passes localized strings. Interactive cell content rendered into a
 // #cell-<key> slot should call @click.stop so it doesn't trigger row-click.
+type TableValue = string | number;
+type SortDirection = "asc" | "desc";
+type ColumnAlign = "left" | "right" | "center";
+type Row = Record<string, unknown>;
+type RowClass = string | string[] | Record<string, boolean>;
+
+interface Column {
+    key: string;
+    label: string;
+    sortable?: boolean;
+    width?: string;
+    align?: ColumnAlign;
+}
+
+interface SortChange {
+    key: string;
+    dir: SortDirection;
+}
+
 const props = defineProps({
-    columns: { type: Array, default: () => [] },
-    rows: { type: Array, default: () => [] },
+    columns: {
+        type: Array as PropType<Column[]>,
+        default: () => [],
+    },
+    rows: {
+        type: Array as PropType<Row[]>,
+        default: () => [],
+    },
     rowKey: { type: String, default: "id" },
     selectable: { type: Boolean, default: false },
-    selected: { type: Array, default: () => [] },
+    selected: {
+        type: Array as PropType<TableValue[]>,
+        default: () => [],
+    },
     pageSize: { type: Number, default: 0 },
     hover: { type: Boolean, default: true },
     // Skip the internal client-side sort when the consumer sorts externally
@@ -27,35 +61,60 @@ const props = defineProps({
     // from props (the source of truth, e.g. server-side sort) instead of internal
     // state, keeping the header arrow / aria-sort in sync. Pair with manualSort.
     sortKey: { type: String, default: "" },
-    sortDir: { type: String, default: "asc" },
+    sortDir: {
+        type: String as PropType<SortDirection>,
+        default: "asc",
+    },
     // Localized text — app overrides these; defaults stay English (locale-agnostic).
     emptyText: { type: String, default: "No data" },
     clearLabel: { type: String, default: "Clear selection" },
-    selectionLabel: { type: Function, default: (n) => `${n} selected` },
+    selectionLabel: {
+        type: Function as PropType<(count: number) => string>,
+        default: (count: number) => `${count} selected`,
+    },
     rangeLabel: {
-        type: Function,
-        default: (from, to, total) => `${from}–${to} of ${total}`,
+        type: Function as PropType<
+            (from: number, to: number, total: number) => string
+        >,
+        default: (from: number, to: number, total: number) =>
+            `${from}–${to} of ${total}`,
     },
     selectAllLabel: { type: String, default: "Select all" },
     selectRowLabel: { type: String, default: "Select row" },
     // Accessible name for an interactive row (only used when @row-click is bound).
     // Returns the label for `row`; without it role="button" derives the name from
     // the row's cell text, which is usually too verbose — pass this for a clean name.
-    rowLabel: { type: Function, default: null },
+    rowLabel: {
+        type: Function as unknown as PropType<
+            ((row: Row) => string) | null
+        >,
+        default: null,
+    },
     // Extra class(es) per row: (row) => string | string[] | object. Lets a consumer
     // highlight rows (e.g. unprocessed items) without the table knowing the domain.
-    rowClass: { type: Function, default: null },
+    rowClass: {
+        type: Function as unknown as PropType<
+            ((row: Row) => RowClass) | null
+        >,
+        default: null,
+    },
 });
-const emit = defineEmits(["update:selected", "row-click", "sort-change"]);
+const emit = defineEmits<{
+    "update:selected": [keys: TableValue[]];
+    "row-click": [row: Row];
+    "sort-change": [sort: SortChange];
+}>();
 
 // A row is interactive only when the consumer actually listens for @row-click.
 // Drives role/tabindex/keyboard + the pointer cursor so the affordance never lies.
 const instance = getCurrentInstance();
-const rowInteractive = computed(() => !!instance.vnode.props?.onRowClick);
+const rowInteractive = computed(
+    () => !!instance?.vnode.props?.onRowClick,
+);
 
 // Internal (uncontrolled) sort state; ignored while a `sortKey` prop is supplied.
 const internalKey = ref("");
-const internalDir = ref("asc");
+const internalDir = ref<SortDirection>("asc");
 const controlled = computed(() => !!props.sortKey);
 const activeKey = computed(() =>
     controlled.value ? props.sortKey : internalKey.value,
@@ -64,7 +123,7 @@ const activeDir = computed(() =>
     controlled.value ? props.sortDir : internalDir.value,
 );
 
-function toggleSort(col) {
+function toggleSort(col: Column): void {
     if (!col.sortable) return;
     const nextDir =
         activeKey.value === col.key && activeDir.value === "asc"
@@ -77,27 +136,34 @@ function toggleSort(col) {
     emit("sort-change", { key: col.key, dir: nextDir });
 }
 
-function ariaSort(col) {
+function ariaSort(
+    col: Column,
+): "none" | "ascending" | "descending" | undefined {
     if (!col.sortable) return undefined;
     if (activeKey.value !== col.key) return "none";
     return activeDir.value === "asc" ? "ascending" : "descending";
 }
 
-const sorted = computed(() => {
+const sorted = computed<Row[]>(() => {
     if (props.manualSort || !activeKey.value) return props.rows;
     const dir = activeDir.value === "asc" ? 1 : -1;
     return [...props.rows].sort((a, b) => {
-        let x = a[activeKey.value],
-            y = b[activeKey.value];
+        let x = a[activeKey.value] as string | number | null | undefined;
+        let y = b[activeKey.value] as string | number | null | undefined;
         // nullish values sort last regardless of direction
-        const xn = x == null,
-            yn = y == null;
-        if (xn || yn) return xn === yn ? 0 : xn ? 1 : -1;
-        if (typeof x === "string" || typeof y === "string") {
-            x = String(x).toLowerCase();
-            y = String(y).toLowerCase();
+        if (x == null || y == null) {
+            if (x == null && y == null) return 0;
+            return x == null ? 1 : -1;
         }
-        return x < y ? -dir : x > y ? dir : 0;
+        const left =
+            typeof x === "string" || typeof y === "string"
+                ? String(x).toLowerCase()
+                : x;
+        const right =
+            typeof x === "string" || typeof y === "string"
+                ? String(y).toLowerCase()
+                : y;
+        return left < right ? -dir : left > right ? dir : 0;
     });
 });
 
@@ -132,13 +198,17 @@ const rangeText = computed(() => {
 const allSel = computed(
     () =>
         paged.value.length > 0 &&
-        paged.value.every((r) => props.selected.includes(r[props.rowKey])),
+        paged.value.every((row) => props.selected.includes(rowId(row))),
 );
 const someSel = computed(() =>
-    paged.value.some((r) => props.selected.includes(r[props.rowKey])),
+    paged.value.some((row) => props.selected.includes(rowId(row))),
 );
-function toggleAll() {
-    const ids = paged.value.map((r) => r[props.rowKey]);
+function rowId(row: Row): TableValue {
+    return row[props.rowKey] as TableValue;
+}
+
+function toggleAll(): void {
+    const ids = paged.value.map(rowId);
     if (allSel.value)
         emit(
             "update:selected",
@@ -150,8 +220,8 @@ function toggleAll() {
             Array.from(new Set([...props.selected, ...ids])),
         );
 }
-function toggleRow(r) {
-    const id = r[props.rowKey];
+function toggleRow(row: Row): void {
+    const id = rowId(row);
     if (props.selected.includes(id))
         emit(
             "update:selected",
@@ -159,7 +229,7 @@ function toggleRow(r) {
         );
     else emit("update:selected", [...props.selected, id]);
 }
-const isSel = (r) => props.selected.includes(r[props.rowKey]);
+const isSel = (row: Row): boolean => props.selected.includes(rowId(row));
 </script>
 
 <template>
@@ -238,7 +308,7 @@ const isSel = (r) => props.selected.includes(r[props.rowKey]);
                 <tbody>
                     <tr
                         v-for="row in paged"
-                        :key="row[rowKey]"
+                        :key="rowId(row)"
                         :class="[
                             {
                                 on: isSel(row),
