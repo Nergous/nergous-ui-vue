@@ -1,5 +1,5 @@
-<script setup>
-import { computed } from "vue";
+<script setup lang="ts">
+import { computed, type PropType } from "vue";
 import NStepper from "./NStepper.vue";
 
 // NWizard — stepped-form shell for large create flows where a drawer/modal is
@@ -16,11 +16,28 @@ import NStepper from "./NStepper.vue";
 //
 // Presentational: the only owned string is `title` (the rail eyebrow), which the
 // host passes in. Step gating is up to the host via v-model + the footer helpers.
+type WizardValue = string | number;
+
+interface WizardStep {
+    value: WizardValue;
+    label: string;
+    sub?: string;
+}
+
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    steps: { type: Array, default: () => [] },
+    modelValue: {
+        type: [String, Number] as PropType<WizardValue>,
+        default: "",
+    },
+    steps: {
+        type: Array as PropType<WizardStep[]>,
+        default: () => [],
+    },
     // Explicit done-set forwarded to NStepper; null = linear (index order).
-    completed: { type: Array, default: null },
+    completed: {
+        type: Array as PropType<WizardValue[] | null>,
+        default: null,
+    },
     // Eyebrow above the step rail (e.g. "New post"). Empty hides it.
     title: { type: String, default: "" },
     // Show the thin progress bar across the top.
@@ -28,7 +45,9 @@ const props = defineProps({
     // Accessible name for the step-rail <nav> (forwarded to NStepper).
     navLabel: { type: String, default: "Steps" },
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: WizardValue];
+}>();
 
 const count = computed(() => props.steps.length);
 const index = computed(() => {
@@ -42,14 +61,14 @@ const pct = computed(() =>
     count.value ? Math.round(((index.value + 1) / count.value) * 100) : 0,
 );
 
-function goTo(value) {
+function goTo(value: WizardValue): void {
     emit("update:modelValue", value);
 }
-function next() {
+function next(): void {
     if (!isLast.value)
         emit("update:modelValue", props.steps[index.value + 1].value);
 }
-function prev() {
+function prev(): void {
     if (!isFirst.value)
         emit("update:modelValue", props.steps[index.value - 1].value);
 }

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {
     ref,
     computed,
@@ -7,6 +7,8 @@ import {
     onBeforeUnmount,
     useId,
     watch,
+    type ComponentPublicInstance,
+    type PropType,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFormField } from "../../composables/useFormField.ts";
@@ -17,14 +19,32 @@ import { useFloating } from "../../composables/useFloating.ts";
 // v-model holds the chosen value; pass choices via :options.
 // options: [{ value, label, disabled? }]. `placeholder` shows when the value
 // matches no option. Keyboard: ↑/↓ move, Enter/Space select, Esc close, Home/End.
+type SelectValue = string | number;
+
+interface SelectOption {
+    value: SelectValue;
+    label: string;
+    disabled?: boolean;
+}
+
+type TemplateRef = Element | ComponentPublicInstance | null;
+
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    options: { type: Array, default: () => [] },
+    modelValue: {
+        type: [String, Number] as PropType<SelectValue>,
+        default: "",
+    },
+    options: {
+        type: Array as PropType<SelectOption[]>,
+        default: () => [],
+    },
     placeholder: { type: String, default: "Select…" },
     error: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: SelectValue];
+}>();
 
 // Surrounding NFormField (if any) supplies invalid/required/described-by/label.
 const field = useFormField();
@@ -34,13 +54,13 @@ const invalid = computed(() => props.error || !!field?.invalid.value);
 // rest of the DS; SSR-safe vs. a module counter).
 const sid = useId();
 const listId = `${sid}-list`;
-const optId = (i) => `${sid}-opt-${i}`;
+const optId = (index: number): string => `${sid}-opt-${index}`;
 
 const open = ref(false);
-const root = ref(null);
-const popup = ref(null);
+const root = ref<HTMLElement | null>(null);
+const popup = ref<HTMLElement | null>(null);
 const floating = useFloating(root, popup, open);
-const optionEls = ref([]);
+const optionEls = ref<HTMLElement[]>([]);
 const activeIndex = ref(-1);
 
 const selected = computed(
@@ -50,16 +70,20 @@ const displayLabel = computed(() =>
     selected.value ? selected.value.label : props.placeholder,
 );
 
-const setOptionRef = (i) => (el) => {
-    if (el) optionEls.value[i] = el;
-};
+const setOptionRef =
+    (index: number) =>
+    (element: TemplateRef): void => {
+        if (element instanceof HTMLElement) {
+            optionEls.value[index] = element;
+        }
+    };
 
-function indexOfValue() {
+function indexOfValue(): number {
     return props.options.findIndex((o) => o.value === props.modelValue);
 }
 
 // Next non-disabled option index, wrapping around. dir: +1 forward, -1 back.
-function nextEnabled(from, dir) {
+function nextEnabled(from: number, dir: number): number {
     const n = props.options.length;
     if (!n) return -1;
     let i = from;
@@ -70,11 +94,11 @@ function nextEnabled(from, dir) {
     return from;
 }
 
-function scrollActiveIntoView() {
+function scrollActiveIntoView(): void {
     optionEls.value[activeIndex.value]?.scrollIntoView({ block: "nearest" });
 }
 
-function openMenu() {
+function openMenu(): void {
     if (props.disabled || open.value) return;
     open.value = true;
     const cur = indexOfValue();
@@ -82,16 +106,16 @@ function openMenu() {
     nextTick(scrollActiveIntoView);
 }
 
-function closeMenu() {
+function closeMenu(): void {
     open.value = false;
     activeIndex.value = -1;
 }
 
-function toggle() {
+function toggle(): void {
     open.value ? closeMenu() : openMenu();
 }
 
-function move(dir) {
+function move(dir: number): void {
     if (!open.value) return openMenu();
     const next = nextEnabled(activeIndex.value, dir);
     if (next >= 0) {
@@ -100,17 +124,17 @@ function move(dir) {
     }
 }
 
-function selectOption(opt) {
+function selectOption(opt: SelectOption | undefined): void {
     if (props.disabled || !opt || opt.disabled) return;
     if (opt.value !== props.modelValue) emit("update:modelValue", opt.value);
     closeMenu();
 }
 
-function onOptionHover(i, opt) {
-    if (!opt.disabled) activeIndex.value = i;
+function onOptionHover(index: number, option: SelectOption): void {
+    if (!option.disabled) activeIndex.value = index;
 }
 
-function onKeydown(e) {
+function onKeydown(e: KeyboardEvent): void {
     switch (e.key) {
         case "ArrowDown":
             e.preventDefault();
@@ -153,11 +177,13 @@ function onKeydown(e) {
     }
 }
 
-function onDocClick(e) {
+function onDocClick(e: MouseEvent): void {
+    const target = e.target;
+    if (!(target instanceof Node)) return;
     if (
         root.value &&
-        !root.value.contains(e.target) &&
-        !popup.value?.contains(e.target)
+        !root.value.contains(target) &&
+        !popup.value?.contains(target)
     )
         closeMenu();
 }

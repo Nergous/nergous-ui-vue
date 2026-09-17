@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {
     ref,
     computed,
@@ -7,6 +7,8 @@ import {
     onBeforeUnmount,
     useId,
     watch,
+    type ComponentPublicInstance,
+    type PropType,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFormField } from "../../composables/useFormField.ts";
@@ -17,31 +19,49 @@ import { focusableWithin } from "../../composables/useFocusTrap.ts";
 // Same value contract as NSelect (v-model + :options [{value,label,disabled?}]);
 // adds a filter field in the popup for long option lists.
 // Keyboard: type to filter, ↑/↓ move, Enter select, Esc close, Home/End.
+type SelectValue = string | number;
+
+interface SelectOption {
+    value: SelectValue;
+    label: string;
+    disabled?: boolean;
+}
+
+type TemplateRef = Element | ComponentPublicInstance | null;
+
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    options: { type: Array, default: () => [] },
+    modelValue: {
+        type: [String, Number] as PropType<SelectValue>,
+        default: "",
+    },
+    options: {
+        type: Array as PropType<SelectOption[]>,
+        default: () => [],
+    },
     placeholder: { type: String, default: "Select…" },
     searchPlaceholder: { type: String, default: "Search…" },
     noResultsText: { type: String, default: "No results" },
     error: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: SelectValue];
+}>();
 
 const field = useFormField();
 const invalid = computed(() => props.error || !!field?.invalid.value);
 
 const sid = useId();
 const listId = `${sid}-list`;
-const optId = (i) => `${sid}-opt-${i}`;
+const optId = (index: number): string => `${sid}-opt-${index}`;
 
 const open = ref(false);
-const root = ref(null);
-const triggerEl = ref(null);
-const popup = ref(null);
+const root = ref<HTMLElement | null>(null);
+const triggerEl = ref<HTMLButtonElement | null>(null);
+const popup = ref<HTMLElement | null>(null);
 const floating = useFloating(root, popup, open);
-const searchEl = ref(null);
-const optionEls = ref([]);
+const searchEl = ref<HTMLInputElement | null>(null);
+const optionEls = ref<HTMLElement[]>([]);
 const activeIndex = ref(-1);
 const query = ref("");
 
@@ -61,21 +81,25 @@ const filtered = computed(() => {
     );
 });
 
-const setOptionRef = (i) => (el) => {
-    if (el) optionEls.value[i] = el;
-};
+const setOptionRef =
+    (index: number) =>
+    (element: TemplateRef): void => {
+        if (element instanceof HTMLElement) {
+            optionEls.value[index] = element;
+        }
+    };
 
 // Index (within `filtered`) of the currently selected value, or -1.
-function selectedFilteredIndex() {
+function selectedFilteredIndex(): number {
     return filtered.value.findIndex((o) => o.value === props.modelValue);
 }
 
-function firstEnabled() {
+function firstEnabled(): number {
     return filtered.value.findIndex((o) => !o.disabled);
 }
 
 // Next non-disabled index in `filtered`, wrapping. dir: +1 forward, -1 back.
-function nextEnabled(from, dir) {
+function nextEnabled(from: number, dir: number): number {
     const n = filtered.value.length;
     if (!n) return -1;
     let i = from;
@@ -86,11 +110,11 @@ function nextEnabled(from, dir) {
     return from;
 }
 
-function scrollActiveIntoView() {
+function scrollActiveIntoView(): void {
     optionEls.value[activeIndex.value]?.scrollIntoView({ block: "nearest" });
 }
 
-function openMenu() {
+function openMenu(): void {
     if (props.disabled || open.value) return;
     query.value = "";
     open.value = true;
@@ -102,17 +126,17 @@ function openMenu() {
     });
 }
 
-function closeMenu(returnFocus = false) {
+function closeMenu(returnFocus = false): void {
     open.value = false;
     activeIndex.value = -1;
     if (returnFocus) triggerEl.value?.focus();
 }
 
-function toggle() {
+function toggle(): void {
     open.value ? closeMenu() : openMenu();
 }
 
-function move(dir) {
+function move(dir: number): void {
     if (!open.value) return openMenu();
     const next = nextEnabled(activeIndex.value, dir);
     if (next >= 0) {
@@ -121,14 +145,14 @@ function move(dir) {
     }
 }
 
-function selectOption(opt) {
+function selectOption(opt: SelectOption | undefined): void {
     if (props.disabled || !opt || opt.disabled) return;
     if (opt.value !== props.modelValue) emit("update:modelValue", opt.value);
     closeMenu(true);
 }
 
-function onOptionHover(i, opt) {
-    if (!opt.disabled) activeIndex.value = i;
+function onOptionHover(index: number, option: SelectOption): void {
+    if (!option.disabled) activeIndex.value = index;
 }
 
 // Filtering changes the list: drop stale option refs and re-home the highlight.
@@ -140,7 +164,7 @@ watch(filtered, () => {
 });
 
 // Keys handled on the search field (which holds focus while the popup is open).
-function onKeydown(e) {
+function onKeydown(e: KeyboardEvent): void {
     switch (e.key) {
         case "ArrowDown":
             e.preventDefault();
@@ -176,13 +200,14 @@ function onKeydown(e) {
             break;
         case "Tab":
             if (open.value) {
-                const owner = triggerEl.value?.closest("[data-overlay]");
+                const trigger = triggerEl.value;
+                const owner = trigger?.closest<HTMLElement>("[data-overlay]");
                 if (owner) {
                     e.preventDefault();
                     const items = focusableWithin(owner).filter(
                         (el) => !popup.value?.contains(el),
                     );
-                    const index = items.indexOf(triggerEl.value);
+                    const index = trigger ? items.indexOf(trigger) : -1;
                     const next =
                         items[
                             (index + (e.shiftKey ? -1 : 1) + items.length) %
@@ -196,7 +221,7 @@ function onKeydown(e) {
     }
 }
 
-function onTriggerKeydown(e) {
+function onTriggerKeydown(e: KeyboardEvent): void {
     if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         openMenu();
@@ -206,11 +231,13 @@ function onTriggerKeydown(e) {
     }
 }
 
-function onDocClick(e) {
+function onDocClick(e: MouseEvent): void {
+    const target = e.target;
+    if (!(target instanceof Node)) return;
     if (
         root.value &&
-        !root.value.contains(e.target) &&
-        !popup.value?.contains(e.target)
+        !root.value.contains(target) &&
+        !popup.value?.contains(target)
     )
         closeMenu();
 }

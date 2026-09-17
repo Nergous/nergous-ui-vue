@@ -1,5 +1,5 @@
-<script setup>
-import { ref, watch } from "vue";
+<script setup lang="ts">
+import { ref, watch, type PropType } from "vue";
 import NAnchorNav from "./NAnchorNav.vue";
 import { useScrollSpy } from "../../composables/useScrollSpy.ts";
 
@@ -19,9 +19,23 @@ import { useScrollSpy } from "../../composables/useScrollSpy.ts";
 //   #status          — pinned to the rail bottom (e.g. "Draft · unsaved").
 //   #savebar         — content of the floating save bar (text + buttons); the
 //                      bar chrome only renders when this slot is provided.
+type SectionValue = string | number;
+
+interface FormSection {
+    value: SectionValue;
+    label: string;
+    count?: number;
+}
+
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    sections: { type: Array, default: () => [] },
+    modelValue: {
+        type: [String, Number] as PropType<SectionValue>,
+        default: "",
+    },
+    sections: {
+        type: Array as PropType<FormSection[]>,
+        default: () => [],
+    },
     // Caption above the rail nav (e.g. "Sections"). Empty hides it.
     sectionsLabel: { type: String, default: "" },
     // Height of the rail+content card (the content column scrolls inside it).
@@ -31,9 +45,11 @@ const props = defineProps({
     // Accessible name for the rail <nav> (forwarded to NAnchorNav).
     navLabel: { type: String, default: "Sections" },
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: SectionValue];
+}>();
 
-const scrollEl = ref(null);
+const scrollEl = ref<HTMLElement | null>(null);
 const { active, scrollTo } = useScrollSpy(scrollEl, {
     offset: () => props.offset,
 });
@@ -47,7 +63,7 @@ watch(active, (str) => {
         emit("update:modelValue", match.value);
 });
 
-function onPick(value) {
+function onPick(value: SectionValue): void {
     emit("update:modelValue", value);
     scrollTo(value);
 }

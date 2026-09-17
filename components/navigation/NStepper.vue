@@ -1,5 +1,5 @@
-<script setup>
-import { computed } from "vue";
+<script setup lang="ts">
+import { computed, type PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 
 // NStepper — vertical step rail for multi-step flows. v-model holds the active
@@ -10,21 +10,41 @@ import NIcon from "../primitives/NIcon.vue";
 // emits update:modelValue, so the host decides via v-model whether the jump is
 // allowed. Presentational and locale-agnostic: all copy comes from `steps`.
 // Used standalone or as the rail inside NWizard.
+type StepValue = string | number;
+type StepState = "done" | "current" | "todo";
+
+interface StepItem {
+    value: StepValue;
+    label: string;
+    sub?: string;
+}
+
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    steps: { type: Array, default: () => [] },
+    modelValue: {
+        type: [String, Number] as PropType<StepValue>,
+        default: "",
+    },
+    steps: {
+        type: Array as PropType<StepItem[]>,
+        default: () => [],
+    },
     // Explicit done-set; when null, steps before the active index are "done".
-    completed: { type: Array, default: null },
+    completed: {
+        type: Array as PropType<StepValue[] | null>,
+        default: null,
+    },
     // Accessible name for the <nav> landmark (English default; app localizes).
     navLabel: { type: String, default: "Steps" },
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: StepValue];
+}>();
 
 const activeIndex = computed(() =>
     props.steps.findIndex((s) => s.value === props.modelValue),
 );
 
-function stateOf(step, i) {
+function stateOf(step: StepItem, i: number): StepState {
     if (step.value === props.modelValue) return "current";
     const done = props.completed
         ? props.completed.includes(step.value)

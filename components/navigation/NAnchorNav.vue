@@ -1,4 +1,13 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from "vue";
+
+type NavValue = string | number;
+
+interface NavSection {
+    value: NavValue;
+    label: string;
+    count?: number;
+}
 // NAnchorNav — vertical table-of-contents for a long single-page form. v-model
 // holds the active section value; sections: [{ value, label, count }] (`count`
 // optional — shown as a muted badge). Clicking a section emits update:modelValue.
@@ -6,12 +15,20 @@
 // owns the scroll container and drives the active value through v-model. Use
 // standalone only if you wire those yourself (e.g. via useScrollSpy).
 defineProps({
-    modelValue: { type: [String, Number], default: "" },
-    sections: { type: Array, default: () => [] },
+    modelValue: {
+        type: [String, Number] as PropType<NavValue>,
+        default: "",
+    },
+    sections: {
+        type: Array as PropType<NavSection[]>,
+        default: () => [],
+    },
     // Accessible name for the <nav> landmark (English default; app localizes).
     navLabel: { type: String, default: "Sections" },
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: NavValue];
+}>();
 </script>
 
 <template>

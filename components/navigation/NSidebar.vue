@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+import type { Component, PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import NBrand from "./NBrand.vue";
 
@@ -10,9 +11,37 @@ import NBrand from "./NBrand.vue";
 // router link component (e.g. Inertia <Link>) via `linkAs`. The active item is
 // driven by `modelValue` (derive it from the current route in the parent) so the
 // component stays framework-agnostic.
+type SidebarValue = string | number;
+
+interface SidebarItem {
+    id: SidebarValue;
+    label: string;
+    icon?: string;
+    badge?: SidebarValue;
+    href?: string;
+    external?: boolean;
+}
+
+interface SidebarGroup {
+    label?: string;
+    items: SidebarItem[];
+}
+
+interface SidebarBrand {
+    name?: string;
+    sub?: string;
+    glyph?: string;
+}
+
 defineProps({
-    modelValue: { type: [String, Number], default: "" }, // active item id
-    groups: { type: Array, default: () => [] },
+    modelValue: {
+        type: [String, Number] as PropType<SidebarValue>,
+        default: "",
+    }, // active item id
+    groups: {
+        type: Array as PropType<SidebarGroup[]>,
+        default: () => [],
+    },
     collapsed: { type: Boolean, default: false },
     // Off-canvas mode for mobile/narrow viewports. When true the sidebar is
     // positioned fixed over the content and shown/hidden via `collapsed`:
@@ -21,21 +50,28 @@ defineProps({
     // Desktop behaviour (mobile=false) is unchanged: collapsed = 248/74px width.
     mobile: { type: Boolean, default: false },
     brand: {
-        type: Object,
+        type: Object as PropType<SidebarBrand>,
         default: () => ({ name: "nergous-ui-vue", sub: "Operations", glyph: "N" }),
     },
-    linkAs: { type: Object, default: () => ({}) },
+    linkAs: {
+        type: Object as PropType<Component>,
+        default: () => ({}),
+    },
     // Accessible name for the <nav> landmark (English default; app localizes).
     navLabel: { type: String, default: "Main navigation" },
 });
 // `navigate` fires on any item activation (link or button) so the host can react
 // intentionally — e.g. close a mobile off-canvas drawer — instead of relying on a
 // bubbled click. Payload: the activated item.
-const emit = defineEmits(["update:modelValue", "update:collapsed", "navigate"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: SidebarValue];
+    "update:collapsed": [collapsed: boolean];
+    navigate: [item: SidebarItem];
+}>();
 
-function onItemClick(it) {
-    if (!it.href) emit("update:modelValue", it.id);
-    emit("navigate", it);
+function onItemClick(item: SidebarItem): void {
+    if (!item.href) emit("update:modelValue", item.id);
+    emit("navigate", item);
 }
 </script>
 
@@ -71,7 +107,7 @@ function onItemClick(it) {
                     :aria-current="modelValue === it.id ? 'page' : undefined"
                     @click="onItemClick(it)"
                 >
-                    <NIcon :name="it.icon" :size="18" class="n-sb__icon" />
+                    <NIcon :name="it.icon || ''" :size="18" class="n-sb__icon" />
                     <span v-if="!collapsed" class="n-sb__label">{{
                         it.label
                     }}</span>
