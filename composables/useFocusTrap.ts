@@ -11,8 +11,24 @@
 //   • Tab / Shift+Tab cycle focus within the container.
 //   • on deactivation / unmount: restores focus to the previously active element
 //     and detaches its listeners. No external dependencies.
-import { watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { watch, onMounted, onBeforeUnmount, nextTick, type Ref } from "vue";
 import { overlayOwner, isTopOverlay } from "./useOverlayStack.js";
+
+interface ComponentWithElement {
+    $el: HTMLElement;
+}
+
+type FocusContainer = HTMLElement | ComponentWithElement
+
+type FocusTarget = Ref<FocusContainer | null> | (() => FocusContainer | null)
+
+type ActiveSource = Ref<boolean> | (() => boolean)
+
+interface TrapEntry {
+    container(): HTMLElement | null;
+    returnTarget(): HTMLElement | null;
+    setReturnTarget(element: HTMLElement | null): void;
+}
 
 // Selector matching every natively focusable element Tab should be able to reach.
 const FOCUSABLE = [
@@ -33,19 +49,21 @@ const FOCUSABLE = [
 // (most recently activated) trap handles Tab; outer traps stand down until it
 // deactivates. Without this, a modal opened inside a drawer fights the drawer's
 // trap and focus bounces between them.
-const trapStack = [];
+const trapStack: TrapEntry[] = [];
 
 // Resolve a container argument (ref / getter / component instance) to a raw DOM element.
-function resolve(target) {
-    const el = typeof target === "function" ? target() : target?.value;
+function resolve(target: FocusTarget): HTMLElement | null {
+    const el = typeof target === "function" ? target() : target.value;
+    if (el instanceof HTMLElement) return el
     // unwrap component instances exposing $el
-    return el && el.$el ? el.$el : el || null;
+    return el?.$el instanceof HTMLElement ? el.$el : null;
 }
 
 // Collect the visible focusable elements inside `container`, in DOM order.
-export function focusableWithin(container) {
+export function focusableWithin(container: HTMLElement | null): HTMLElement[] {
     if (!container) return [];
-    return Array.from(container.querySelectorAll(FOCUSABLE)).filter(
+
+    return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
         (el) =>
             el.tabIndex >= 0 &&
             !el.closest("[inert]") &&
@@ -56,14 +74,15 @@ export function focusableWithin(container) {
     );
 }
 
-export function useFocusTrap(containerRef, isActive) {
+export function useFocusTrap(containerRef: FocusTarget, isActive: ActiveSource) {
     const owner = overlayOwner();
-    const active =
-        typeof isActive === "function" ? isActive : () => isActive?.value;
-    let previouslyFocused = null;
-    let trappedContainer = null;
+    const active = typeof isActive === "function" ? isActive : () => isActive.value;
+
+    let previouslyFocused: HTMLElement | null = null;
+    let trappedContainer: HTMLElement | null = null;
+
     // Identity token for this trap instance on the shared stack.
-    const trapId = {
+    const trapId: TrapEntry = {
         container: () => resolve(containerRef),
         returnTarget: () => previouslyFocused,
         setReturnTarget: (el) => {
@@ -72,12 +91,14 @@ export function useFocusTrap(containerRef, isActive) {
     };
 
     // Trap Tab / Shift+Tab so focus wraps within the container instead of escaping it.
-    function onKeydown(e) {
+    function onKeydown(e: KeyboardEvent) {
         if (e.key !== "Tab") return;
         // Stand down while a trap stacked above us (e.g. a modal over this drawer) is open.
         if (trapStack[trapStack.length - 1] !== trapId) return;
+
         const container = resolve(containerRef);
         if (!container) return;
+
         const items = focusableWithin(container);
         if (!items.length) {
             // nothing focusable: keep focus on the container itself
@@ -85,6 +106,7 @@ export function useFocusTrap(containerRef, isActive) {
             container.focus();
             return;
         }
+
         const first = items[0];
         const last = items[items.length - 1];
         const current = document.activeElement;

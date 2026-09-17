@@ -1,18 +1,26 @@
-import { watch, onMounted, onBeforeUnmount } from "vue";
+import { watch, onMounted, onBeforeUnmount, type Ref } from "vue";
 import {
     overlayOwner,
     activateOverlay,
     deactivateOverlay,
     isTopOverlay,
+    type OverlayRoot
 } from "./useOverlayStack.js";
 
+type ActiveSource = Ref<boolean> | (() => boolean);
+
+export interface InertState {
+    layer: Ref<number>;
+    isTop(): boolean;
+}
+
 // Call before useFocusTrap: release background inertness before returning focus.
-export function useInert(isActive, roots = []) {
+export function useInert(isActive: ActiveSource, roots: OverlayRoot[] = []): InertState {
     const owner = overlayOwner();
-    const active =
-        typeof isActive === "function" ? isActive : () => isActive?.value;
+    const active = typeof isActive === "function" ? isActive : () => isActive.value;
     let held = false;
-    function apply(on) {
+
+    function apply(on: boolean) {
         if (on && !held) {
             held = true;
             activateOverlay(owner, roots);
@@ -21,8 +29,13 @@ export function useInert(isActive, roots = []) {
             deactivateOverlay(owner);
         }
     }
+
     watch(active, (v) => apply(!!v), { flush: "post" });
     onMounted(() => apply(!!active()));
     onBeforeUnmount(() => apply(false));
-    return { layer: owner.layer, isTop: () => isTopOverlay(owner) };
+
+    return {
+        layer: owner.layer,
+        isTop: () => isTopOverlay(owner)
+    };
 }
