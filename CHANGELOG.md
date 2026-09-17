@@ -9,6 +9,7 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 - Restore cache-first archive installation with registry fallback so clean CI
   runners can resolve Vue without bypassing peer dependency validation.
+- Preserve legacy theme and density storage keys during the TypeScript migration.
 
 ### Added
 
