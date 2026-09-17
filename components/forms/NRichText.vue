@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 /**
  * NRichText — lightweight WYSIWYG field built on native `contenteditable`.
  * v-model holds an HTML string (e.g. "<p>Hi <b>there</b></p>"). Zero deps.
@@ -29,6 +29,7 @@ import {
     nextTick,
     onMounted,
     onBeforeUnmount,
+    type PropType,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import NModal from "../overlays/NModal.vue";
@@ -38,6 +39,51 @@ import NFormField from "./NFormField.vue";
 import { useFormField } from "../../composables/useFormField.ts";
 import { sanitizeHtml, safeUrl } from "../../utils/sanitize.ts";
 
+type RichTextToolId =
+    | "bold"
+    | "italic"
+    | "strike"
+    | "h2"
+    | "h3"
+    | "ul"
+    | "ol"
+    | "link"
+    | "quote"
+    | "code"
+    | "clear";
+
+type LabelKey =
+    | RichTextToolId
+    | "toolbar"
+    | "linkPrompt"
+    | "linkTitle"
+    | "linkConfirm"
+    | "linkCancel"
+    | "linkRemove";
+
+type ActiveKey =
+    | "bold"
+    | "italic"
+    | "strike"
+    | "ul"
+    | "ol"
+    | "h2"
+    | "h3"
+    | "quote";
+
+interface ToolbarTool {
+    id: RichTextToolId;
+    cmd?: string;
+    icon?: string;
+    key?: ActiveKey;
+    block?: "h2" | "h3" | "blockquote";
+    text?: string;
+    action?: "link" | "code" | "clear";
+}
+
+type ToolbarEntry = ToolbarTool | "sep";
+type RichTextLabels = Partial<Record<LabelKey, string>>;
+
 const props = defineProps({
     modelValue: { type: String, default: "" },
     placeholder: { type: String, default: "" },
@@ -46,15 +92,18 @@ const props = defineProps({
     // Toolbar text (button titles/aria-labels, toolbar aria-label, link prompt).
     // Neutral English defaults; the app passes localized strings at the call site.
     // Override per key — merged over DEFAULT_LABELS, so a partial object is fine.
-    labels: { type: Object, default: () => ({}) },
+    labels: {
+        type: Object as PropType<RichTextLabels>,
+        default: () => ({}),
+    },
     // Restrict the toolbar to these tool ids (see TOOLS). Empty = show all.
     // Separators are dropped automatically in the restricted set. Useful when the
     // target sink supports only a subset of formatting (e.g. inline-only).
     tools: {
-        type: Array,
+        type: Array as PropType<RichTextToolId[]>,
         default: () => [],
-        validator: (v) =>
-            v.every((id) =>
+        validator: (value: RichTextToolId[]) =>
+            value.every((id) =>
                 [
                     "bold",
                     "italic",
@@ -71,7 +120,9 @@ const props = defineProps({
             ),
     },
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+    "update:modelValue": [value: string];
+}>();
 
 // Surrounding NFormField (if any) supplies invalid/required/described-by/label.
 const field = useFormField();
@@ -79,7 +130,7 @@ const invalid = computed(() => props.error || !!field?.invalid.value);
 
 // Accessible names for the toolbar, keyed by tool id (see TOOLS). English
 // defaults; the call site localizes via the `labels` prop.
-const DEFAULT_LABELS = {
+const DEFAULT_LABELS: Record<LabelKey, string> = {
     toolbar: "Formatting",
     bold: "Bold (Ctrl+B)",
     italic: "Italic (Ctrl+I)",
@@ -101,7 +152,7 @@ const DEFAULT_LABELS = {
 };
 const labels = computed(() => ({ ...DEFAULT_LABELS, ...props.labels }));
 
-const editable = ref(null);
+const editable = ref<HTMLElement | null>(null);
 const isEmpty = ref(true);
 
 // Link modal state. We can't open a focusable overlay without the editor losing
@@ -109,10 +160,10 @@ const isEmpty = ref(true);
 const linkModalOpen = ref(false);
 const linkUrl = ref("");
 const editingLink = ref(false);
-const linkBody = ref(null);
-let savedRange = null;
+const linkBody = ref<HTMLElement | null>(null);
+let savedRange: Range | null = null;
 // Reflects the formatting at the caret so toolbar buttons can show pressed state.
-const active = reactive({
+const active = reactive<Record<ActiveKey, boolean>>({
     bold: false,
     italic: false,
     strike: false,
@@ -126,7 +177,7 @@ const active = reactive({
 // Toolbar layout. `sep` renders a divider; `text` buttons (H2/H3) carry a label
 // instead of an icon; `key` ties a button to its `active` flag; `id` looks up the
 // button's accessible name in `labels`.
-const TOOLS = [
+const TOOLS: ToolbarEntry[] = [
     { id: "bold", cmd: "bold", icon: "bold", key: "bold" },
     { id: "italic", cmd: "italic", icon: "italic", key: "italic" },
     {
@@ -159,21 +210,21 @@ const visibleTools = computed(() =>
 
 // --- execCommand wrappers (the only deprecated surface, kept in one place) ----
 
-function exec(cmd, value = null) {
+function exec(cmd: string, value?: string): void {
     document.execCommand(cmd, false, value);
 }
 
 // queryCommandState, but never throws on unsupported commands.
-function state(cmd) {
+function state(cmd: string): boolean {
     try {
-        return document.execCommand && document.queryCommandState(cmd);
+        return document.queryCommandState(cmd);
     } catch {
         return false;
     }
 }
 
 // Toggle a block format (h2/h3/blockquote): apply it, or revert to <p> if already on.
-function toggleBlock(tag) {
+function toggleBlock(tag: "h2" | "h3" | "blockquote"): void {
     const current = (
         document.queryCommandValue("formatBlock") || ""
     ).toLowerCase();
@@ -183,34 +234,46 @@ function toggleBlock(tag) {
 // --- link modal ---------------------------------------------------------------
 
 // Stash / restore the editor selection across the focus change the modal causes.
-function saveRange() {
+function saveRange(): void {
     const sel = document.getSelection();
     savedRange = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
 }
-function restoreRange() {
+function restoreRange(): void {
     if (!savedRange) return;
     const sel = document.getSelection();
+    if (!sel) return;
     sel.removeAllRanges();
     sel.addRange(savedRange);
 }
 
-const isSafeUrl = (url) => !!safeUrl(url);
-function escapeAttr(s) {
+const isSafeUrl = (url: string): boolean => !!safeUrl(url);
+function escapeAttr(s: string): string {
+    const escapes: Record<string, string> = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+    };
     return s.replace(
         /[&<>"]/g,
-        (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+        (character) => escapes[character],
     );
 }
 
 // Open the link modal: remember the selection; if the caret sits in a link, edit
 // it (select the whole anchor and prefill its href) instead of making a new one.
-function openLinkModal() {
+function openLinkModal(): void {
     editable.value?.focus();
     restoreRange();
     saveRange();
     const sel = document.getSelection();
     const node = sel && sel.anchorNode;
-    const elNode = node && (node.nodeType === 1 ? node : node.parentElement);
+    const elNode =
+        node instanceof Element
+            ? node
+            : node?.parentNode instanceof Element
+              ? node.parentNode
+              : null;
     const anchor = elNode && elNode.closest("a");
     if (anchor) {
         const r = document.createRange();
@@ -237,7 +300,7 @@ function openLinkModal() {
 
 // Re-focus the editor, restore the saved selection, then run the edit. rAF lands
 // this after the trap's focus-restore so execCommand sees the right selection.
-function withRestoredSelection(fn) {
+function withRestoredSelection(fn: () => void): void {
     const apply = () => {
         editable.value?.focus();
         restoreRange();
@@ -250,7 +313,7 @@ function withRestoredSelection(fn) {
     else nextTick(apply);
 }
 
-function confirmLink() {
+function confirmLink(): void {
     const url = linkUrl.value.trim();
     linkModalOpen.value = false;
     withRestoredSelection(() => {
@@ -271,35 +334,40 @@ function confirmLink() {
     });
 }
 
-function removeLink() {
+function removeLink(): void {
     linkModalOpen.value = false;
     withRestoredSelection(() => exec("unlink"));
 }
 
 // Wrap the selected text in <code>. (v1: no toggle-off — clear formatting removes it.)
-function wrapCode() {
+function wrapCode(): void {
     const sel = document.getSelection();
     if (!sel || sel.isCollapsed) return;
     exec("insertHTML", `<code>${escapeHtml(sel.toString())}</code>`);
 }
 
-function escapeHtml(s) {
+function escapeHtml(s: string): string {
+    const escapes: Record<string, string> = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+    };
     return s.replace(
         /[&<>]/g,
-        (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c],
+        (character) => escapes[character],
     );
 }
 
 // --- toolbar dispatch ---------------------------------------------------------
 
-function run(tool) {
+function run(tool: ToolbarTool): void {
     if (props.disabled) return;
     // Link opens a modal — its own flow handles focus/selection/sync.
     if (tool.action === "link") {
         openLinkModal();
         return;
     }
-    editable.value.focus();
+    editable.value?.focus();
     restoreRange();
     if (tool.cmd) exec(tool.cmd);
     else if (tool.block) toggleBlock(tool.block);
@@ -312,19 +380,21 @@ function run(tool) {
 // --- model <-> DOM sync -------------------------------------------------------
 
 // An "empty" contenteditable still holds <br>/<div> noise — treat no text as empty.
-function computeEmpty() {
+function computeEmpty(): boolean {
     const el = editable.value;
     return !el || (!el.textContent.trim() && !el.querySelector("img,hr"));
 }
 
 // Push the editor's HTML out through v-model (normalised to "" when empty).
-function sync() {
+function sync(): void {
+    const el = editable.value;
+    if (!el) return;
     isEmpty.value = computeEmpty();
-    emit("update:modelValue", isEmpty.value ? "" : editable.value.innerHTML);
+    emit("update:modelValue", isEmpty.value ? "" : el.innerHTML);
 }
 
 // Refresh toolbar pressed-state from the current selection.
-function updateActive() {
+function updateActive(): void {
     const el = editable.value;
     const sel = document.getSelection();
     if (!el || !sel || !el.contains(sel.anchorNode)) return;
@@ -343,7 +413,7 @@ function updateActive() {
 
 // --- paste sanitisation -------------------------------------------------------
 
-function onPaste(e) {
+function onPaste(e: ClipboardEvent): void {
     e.preventDefault();
     if (props.disabled) return;
     const cb = e.clipboardData;
@@ -354,10 +424,12 @@ function onPaste(e) {
     sync();
 }
 
-function onDrop(e) {
+function onDrop(e: DragEvent): void {
     e.preventDefault();
     if (props.disabled || !e.dataTransfer) return;
-    editable.value.focus();
+    const el = editable.value;
+    if (!el) return;
+    el.focus();
     let range = document.caretRangeFromPoint?.(e.clientX, e.clientY);
     if (!range && document.caretPositionFromPoint) {
         const caret = document.caretPositionFromPoint(e.clientX, e.clientY);
@@ -367,12 +439,13 @@ function onDrop(e) {
             range.collapse(true);
         }
     }
-    if (!range || !editable.value.contains(range.startContainer)) {
+    if (!range || !el.contains(range.startContainer)) {
         range = document.createRange();
-        range.selectNodeContents(editable.value);
+        range.selectNodeContents(el);
         range.collapse(false);
     }
     const selection = document.getSelection();
+    if (!selection) return;
     selection.removeAllRanges();
     selection.addRange(range);
     const html = e.dataTransfer.getData("text/html");
@@ -383,15 +456,16 @@ function onDrop(e) {
 
 // --- lifecycle ----------------------------------------------------------------
 
-function onSelectionChange() {
+function onSelectionChange(): void {
     if (!props.disabled) {
         const selection = document.getSelection();
-        if (editable.value?.contains(selection?.anchorNode)) saveRange();
+        if (editable.value?.contains(selection?.anchorNode ?? null)) saveRange();
         updateActive();
     }
 }
 
 onMounted(() => {
+    if (!editable.value) return;
     editable.value.innerHTML = sanitizeHtml(props.modelValue);
     isEmpty.value = computeEmpty();
     document.addEventListener("selectionchange", onSelectionChange);
@@ -445,7 +519,7 @@ watch(
                     @click="run(tool)"
                 >
                     <span v-if="tool.text">{{ tool.text }}</span>
-                    <NIcon v-else :name="tool.icon" :size="16" />
+                    <NIcon v-else :name="tool.icon || ''" :size="16" />
                 </button>
             </template>
         </div>
