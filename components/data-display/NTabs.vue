@@ -29,7 +29,7 @@ const emit = defineEmits<{
     "update:modelValue": [value: TabValue];
 }>();
 
-const generatedId = useId();
+const generatedId = useId(); 
 const baseId = computed(() => props.idBase || generatedId);
 
 const tabId = (value: TabValue): string => `${baseId.value}-${value}`;

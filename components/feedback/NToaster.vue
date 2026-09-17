@@ -1,8 +1,11 @@
-<script setup>
+<script setup lang="ts">
 // NToaster — toast notifications container. Mount once near the app root;
 // push messages from anywhere via useToast() (success / error / warning / info).
 // Locale-agnostic: pass regionLabel / dismissLabel (English defaults).
-import { useToast } from "../../composables/useToast.ts";
+import {
+    useToast,
+    type ToastTone,
+} from "../../composables/useToast.ts";
 import NIcon from "../primitives/NIcon.vue";
 
 defineProps({
@@ -20,7 +23,7 @@ const ICONS = {
     danger: "alert-triangle",
 };
 // danger/warn announce assertively; ok/info politely (mirrors NAlert).
-const roleFor = (tone) =>
+const roleFor = (tone: ToastTone): "alert" | "status" =>
     tone === "danger" || tone === "warn" ? "alert" : "status";
 </script>
 

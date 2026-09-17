@@ -10,8 +10,8 @@ import {
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFocusTrap } from "../../composables/useFocusTrap.ts";
-import { useScrollLock } from "../../composables/useScrollLock.js";
-import { useDismiss } from "../../composables/useDismiss.js";
+import { useScrollLock } from "../../composables/useScrollLock.ts";
+import { useDismiss } from "../../composables/useDismiss.ts";
 import { useInert } from "../../composables/useInert.ts";
 
 // NCommandPalette — ⌘K / Ctrl+K command launcher (modal combobox). v-model controls

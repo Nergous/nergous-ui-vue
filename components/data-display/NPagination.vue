@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, watch } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 
@@ -11,7 +11,9 @@ const props = defineProps({
     prevLabel: { type: String, default: "Previous page" },
     nextLabel: { type: String, default: "Next page" },
 });
-const emit = defineEmits(["update:page"]);
+const emit = defineEmits<{
+    "update:page": [page: number];
+}>();
 const totalPages = computed(() =>
     Number.isFinite(props.pages) ? Math.max(1, Math.floor(props.pages)) : 1,
 );
@@ -28,13 +30,14 @@ watch(
     },
     { immediate: true },
 );
-function go(p) {
+function go(p: number | string): void {
+    if (typeof p !== "number") return;
     if (p >= 1 && p <= totalPages.value && p !== currentPage.value)
         emit("update:page", p);
 }
 
 // Windowed page list with ellipses: always show first/last, current ±1.
-const items = computed(() => {
+const items = computed<Array<number | string>>(() => {
     const total = totalPages.value;
     const cur = currentPage.value;
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -42,7 +45,7 @@ const items = computed(() => {
     const list = [...set]
         .filter((p) => p >= 1 && p <= total)
         .sort((a, b) => a - b);
-    const out = [];
+    const out: Array<number | string> = [];
     let prev = 0;
     for (const p of list) {
         if (p - prev > 1) out.push("…");

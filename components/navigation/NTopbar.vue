@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import NIcon from "../primitives/NIcon.vue";
 
 // NTopbar — application header bar. Props: title, subtitle, collapsible.

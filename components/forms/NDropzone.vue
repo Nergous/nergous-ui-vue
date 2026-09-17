@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 
@@ -17,10 +17,12 @@ const props = defineProps({
     browseLabel: { type: String, default: "browse your device" },
     hint: { type: String, default: "" },
 });
-const emit = defineEmits(["files"]);
+const emit = defineEmits<{
+    files: [files: File[]];
+}>();
 
 const over = ref(false);
-function accepted(files) {
+function accepted(files: File[]): File[] {
     const rules = props.accept
         .split(",")
         .map((s) => s.trim().toLowerCase())
@@ -41,20 +43,29 @@ function accepted(files) {
     return props.multiple ? matching : matching.slice(0, 1);
 }
 
-function onDrop(e) {
+function onDrop(e: DragEvent): void {
     over.value = false;
     const files = accepted(Array.from(e.dataTransfer?.files || []));
     if (files.length) emit("files", files);
 }
 // dragleave bubbles when moving onto child elements; only clear the highlight
 // when the pointer actually leaves the dropzone.
-function onDragLeave(e) {
-    if (!e.currentTarget.contains(e.relatedTarget)) over.value = false;
+function onDragLeave(e: DragEvent): void {
+    const current = e.currentTarget;
+    const related = e.relatedTarget;
+    if (
+        current instanceof HTMLElement &&
+        (!(related instanceof Node) || !current.contains(related))
+    ) {
+        over.value = false;
+    }
 }
-function onPick(e) {
-    const files = accepted(Array.from(e.target.files || []));
+function onPick(e: Event): void {
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    const files = accepted(Array.from(target.files || []));
     if (files.length) emit("files", files);
-    e.target.value = "";
+    target.value = "";
 }
 </script>
 

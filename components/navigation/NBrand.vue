@@ -1,4 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from "vue";
+
+type BrandSize = "sm" | "md" | "lg";
+
 // NBrand — product brand lockup: a gradient glyph tile + name/sub text.
 // Used in the sidebar rail and on auth screens. Set `showSub=false` (or use
 // the collapsed sidebar) to render only the glyph.
@@ -13,9 +17,9 @@ defineProps({
     name: { type: String, default: "nergous-ui-vue" },
     sub: { type: String, default: "" },
     size: {
-        type: String,
+        type: String as PropType<BrandSize>,
         default: "md",
-        validator: (v) => ["sm", "md", "lg"].includes(v),
+        validator: (value: string) => ["sm", "md", "lg"].includes(value),
     },
     showSub: { type: Boolean, default: true },
 });
