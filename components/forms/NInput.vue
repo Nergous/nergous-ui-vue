@@ -1,7 +1,15 @@
-<script setup>
-import { computed, ref } from "vue";
+<script setup lang="ts">
+import { computed, ref, type PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
-import { useFormField } from "../../composables/useFormField.js";
+import { useFormField } from "../../composables/useFormField.ts";
+
+type InputValue = string | number;
+type InputSize = "sm" | "md" | "lg";
+
+interface InputModifiers {
+    number?: boolean;
+    trim?: boolean;
+}
 
 // NInput — single-line text field. v-model holds the value.
 // Props: type, placeholder, icon (leading), error (red invalid state), disabled,
@@ -11,20 +19,20 @@ import { useFormField } from "../../composables/useFormField.js";
 // Extra fallthrough attrs (autocomplete, name, id, required, aria-*) are
 // forwarded to the inner <input>, not the wrapper — see inheritAttrs:false.
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
+    modelValue: { type: [String, Number] as PropType<InputValue>, default: "" },
     type: { type: String, default: "text" },
     placeholder: { type: String, default: "" },
     icon: { type: String, default: "" },
     error: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
-    size: { type: String, default: "md" },
+    size: { type: String as PropType<InputSize>, default: "md" },
     // Accessible names for the password reveal toggle (English defaults; app localizes).
     revealLabel: { type: String, default: "Show password" },
     hideLabel: { type: String, default: "Hide password" },
     // v-model modifiers (.number / .trim) arrive here for custom components.
-    modelModifiers: { type: Object, default: () => ({}) },
+    modelModifiers: { type: Object as PropType<InputModifiers>, default: () => ({}) },
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits < { "update:modelValue": [value: InputValue] }>();
 
 // Surrounding NFormField (if any) supplies invalid/required/described-by/label.
 const field = useFormField();
@@ -41,23 +49,29 @@ const effectiveType = computed(() =>
 // holds the right JS type: number/range -> Number; everything else (incl. date,
 // which emits an ISO "2026-06-24" string) stays a string. Mirrors Vue's
 // built-in .number — empty input stays "" (Laravel turns it into null).
-function onInput(e) {
-    let value = e.target.value;
+function onInput(e: Event) {
+    const target = e.target
+    if (!(target instanceof HTMLInputElement)) return
+
+    let value = target.value;
+
     if (props.modelModifiers.trim) value = value.trim();
     if (
         props.modelModifiers.number ||
         props.type === "number" ||
         props.type === "range"
     ) {
-        const n = parseFloat(value);
-        value = isNaN(n) ? value : n;
+        const n = Number.parseFloat(value);
+        emit("update:modelValue", Number.isNaN(n) ? value : n)
+        return
     }
+
     emit("update:modelValue", value);
 }
-</script>
 
-<script>
-export default { inheritAttrs: false };
+defineOptions({
+    inheritAttrs: false
+})
 </script>
 
 <template>

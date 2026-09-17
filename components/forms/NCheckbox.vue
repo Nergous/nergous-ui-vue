@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useSlots } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 
@@ -13,7 +13,8 @@ const props = defineProps({
     disabled: { type: Boolean, default: false },
     ariaLabel: { type: String, default: "" },
 });
-defineEmits(["update:modelValue"]);
+
+defineEmits<{"update:modelValue": [value: boolean]}>();
 
 // Surface a missing accessible name in dev (no visible label and no aria-label).
 const slots = useSlots();

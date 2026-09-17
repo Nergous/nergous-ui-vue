@@ -9,7 +9,7 @@ import {
     watch,
 } from "vue";
 import NIcon from "../primitives/NIcon.vue";
-import { useFormField } from "../../composables/useFormField.js";
+import { useFormField } from "../../composables/useFormField.ts";
 import { useFloating } from "../../composables/useFloating.ts";
 
 // NSelect — custom listbox styled to the design system (replaces the native

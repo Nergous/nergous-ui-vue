@@ -1,17 +1,26 @@
-<script setup>
-/**
- * NButton — primary clickable button. The default slot is the button label.
- */
-import { computed, useSlots, useAttrs } from "vue";
+<script setup lang="ts">
+
+// NButton — primary clickable button. The default slot is the button label.
+import { computed, useSlots, useAttrs, type Component, type PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
+
+type ButtonVariant =
+    | "primary"
+    | "secondary"
+    | "ghost"
+    | "danger";
+
+type ButtonSize = "sm" | "md" | "lg";
+type ButtonTone = "" | "accent" | "danger";
+type ButtonType = "button" | "submit" | "reset";
 
 const props = defineProps({
     /** Visual style: `primary` | `secondary` | `ghost` | `danger`. */
-    variant: { type: String, default: "primary" },
+    variant: { type: String as PropType<ButtonVariant>, default: "primary" },
     /** Size: `sm` | `md` | `lg`. `md` tracks density (`--control-h`). */
-    size: { type: String, default: "md" },
+    size: { type: String as PropType<ButtonSize>, default: "md" },
     /** Hover-tone for ghost/icon buttons: `''` | `accent` | `danger`. */
-    tone: { type: String, default: "" },
+    tone: { type: String as PropType<ButtonTone>, default: "" },
     /** Leading icon name (see NIcon); empty = no icon. */
     icon: { type: String, default: "" },
     /** Show a spinner and ignore clicks while busy. */
@@ -23,13 +32,13 @@ const props = defineProps({
     /** Native button type. Defaults to `button` so it never submits a form by
      *  accident; pass `submit` for a form's submit button. Ignored when `as`
      *  is not a `<button>`. */
-    type: { type: String, default: "button" },
+    type: { type: String as PropType<ButtonType>, default: "button" },
     /** Polymorphic root: render as a different element/component (e.g. the Inertia
      *  `<Link>`, or `"a"`) instead of `<button>`. Keeps the button styling while
      *  yielding correct link semantics — avoids nesting a `<button>` inside an
      *  `<a>`. Non-button roots ignore `type`; a disabled non-button gets
      *  `aria-disabled` instead of the `disabled` attribute. */
-    as: { type: [String, Object, Function], default: "button" },
+    as: { type: [String, Object, Function] as PropType<string | Component>, default: "button" },
 });
 
 const slots = useSlots();
@@ -39,12 +48,15 @@ const iconOnly = computed(() => !!props.icon && !slots.default);
 // Native <button> root vs a polymorphic one (link/component).
 const isButton = computed(() => props.as === "button");
 const blocked = computed(() => props.disabled || props.loading);
-function guardActivation(event) {
+
+function guardActivation(event: Event) {
     if (!blocked.value) return;
+
     event.preventDefault();
     event.stopImmediatePropagation();
 }
-function guardKey(event) {
+
+function guardKey(event: KeyboardEvent) {
     if (event.key === "Enter" || event.key === " ") guardActivation(event);
 }
 

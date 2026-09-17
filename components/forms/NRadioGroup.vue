@@ -1,6 +1,6 @@
 <script setup>
 import { useRovingRadio } from "../../composables/useRovingRadio.js";
-import { useFormField } from "../../composables/useFormField.js";
+import { useFormField } from "../../composables/useFormField.ts";
 
 // NRadioGroup — single-choice radio buttons. v-model holds the selected value.
 // options: [{ value, label }]. Give the group an `aria-label`.

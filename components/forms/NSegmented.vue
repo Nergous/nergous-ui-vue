@@ -1,7 +1,7 @@
 <script setup>
 import NIcon from "../primitives/NIcon.vue";
 import { useRovingRadio } from "../../composables/useRovingRadio.js";
-import { useFormField } from "../../composables/useFormField.js";
+import { useFormField } from "../../composables/useFormField.ts";
 
 // NSegmented — single-choice segmented control. Semantically a radio group,
 // visually an inline button group. v-model holds the selected value.

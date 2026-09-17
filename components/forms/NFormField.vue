@@ -5,7 +5,7 @@
 // aria-required — and aria-labelledby when the field is not a <label> — so the
 // call site does not repeat them. Pass `error` (message string) and optional `hint`.
 import { computed, useId } from "vue";
-import { provideFormField } from "../../composables/useFormField.js";
+import { provideFormField } from "../../composables/useFormField.ts";
 
 const props = defineProps({
     label: { type: String, default: "" },

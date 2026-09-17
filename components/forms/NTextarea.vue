@@ -1,30 +1,41 @@
-<script setup>
+<script setup lang="ts">
 // NTextarea — multi-line text field. v-model holds the value; rows sets the height.
 // Mirrors NInput: `error` paints the invalid state (red border + aria-invalid).
 // Fallthrough attrs (name, id, maxlength, required, aria-*) land on the inner
 // <textarea> automatically — it is the single root element, no wrapper.
-import { computed } from "vue";
-import { useFormField } from "../../composables/useFormField.js";
+import { computed, type PropType } from "vue";
+import { useFormField } from "../../composables/useFormField.ts";
+
+type TextareaValue = string | number;
+
+interface TextareaModifiers {
+    trim?: boolean;
+}
 
 const props = defineProps({
-    modelValue: { type: [String, Number], default: "" },
+    modelValue: { type: [String, Number] as PropType<TextareaValue>, default: "" },
     placeholder: { type: String, default: "" },
-    rows: { type: [Number, String], default: 3 },
+    rows: { type: [Number, String] as PropType<number | string>, default: 3 },
     error: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
     // v-model.trim modifier arrives here for custom components.
-    modelModifiers: { type: Object, default: () => ({}) },
+    modelModifiers: { type: Object as PropType<TextareaModifiers>, default: () => ({}) },
 });
-const emit = defineEmits(["update:modelValue"]);
+
+const emit = defineEmits<{"update:modelValue": [value: string]}>();
 
 // Surrounding NFormField (if any) supplies invalid/required/described-by/label.
 const field = useFormField();
 const invalid = computed(() => props.error || !!field?.invalid.value);
 
-function onInput(e) {
+function onInput(e: Event) {
+    const target = e.target
+    if (!(target instanceof HTMLTextAreaElement)) return;
+
     const value = props.modelModifiers.trim
-        ? e.target.value.trim()
-        : e.target.value;
+        ? target.value.trim()
+        : target.value;
+
     emit("update:modelValue", value);
 }
 </script>

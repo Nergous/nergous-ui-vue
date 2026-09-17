@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // NSwitch — on/off toggle. v-model holds the boolean state.
 // It renders no text, so it needs an external accessible name: pass `aria-label`,
 // or `aria-labelledby` pointing at a visible caption. Such attrs fall through to
@@ -9,7 +9,7 @@ defineProps({
     modelValue: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
 });
-defineEmits(["update:modelValue"]);
+defineEmits<{"update:modelValue": [value: boolean]}>();
 
 // A switch with no visible label must be named for assistive tech; warn in dev.
 const attrs = useAttrs();
