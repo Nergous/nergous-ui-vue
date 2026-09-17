@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // NCard — surface container with border and padding. Default slot is the content.
 // hover adds a lift/elevation on mouseover; padding overrides the default spacing.
 // `hover` is a visual affordance only — clickable cards must add their own

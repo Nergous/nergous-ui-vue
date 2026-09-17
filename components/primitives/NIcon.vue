@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // NIcon — line-icon set on a 24px grid, 1.8px stroke. Pass `name` + `size`.
 // Decorative by default (aria-hidden); pass `title` to expose it as a labelled image.
 // The icon registry lives in ./icons.js — this component is just the renderer.

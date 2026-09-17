@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // NSkeleton — shimmering placeholder shown while content loads.
 // Props: width, height, radius; circle makes it a round dot/avatar placeholder.
 defineProps({

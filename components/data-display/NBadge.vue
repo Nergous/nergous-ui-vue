@@ -1,4 +1,12 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from "vue";
+
+type BadgeTone = "neutral" | "accent" | "ok" | "warn" | "danger" | "info";
+type BadgeSize = "md" | "sm";
+
+const BADGE_TONES: readonly BadgeTone[] = ["neutral", "accent", "ok", "warn", "danger", "info"];
+const BADGE_SIZES: readonly BadgeSize[] = ["md", "sm"];
+
 // NBadge — small status/label chip. Default slot is the text.
 // dot adds a leading colored dot; swatch renders a colored square (role badges);
 // pill makes it fully rounded.
@@ -6,10 +14,10 @@
 // size: md (default) | sm (compact "tag" — always muted grey, ignores tone)
 const props = defineProps({
     tone: {
-        type: String,
+        type: String as PropType<BadgeTone>,
         default: "neutral",
-        validator: (v) =>
-            ["neutral", "accent", "ok", "warn", "danger", "info"].includes(v),
+        validator: (v: string) =>
+            BADGE_TONES.some((tone) => tone === v),
     },
     dot: { type: Boolean, default: false },
     /** Colored square swatch (CSS color string) shown before the label — used by role badges. */
@@ -17,9 +25,10 @@ const props = defineProps({
     pill: { type: Boolean, default: false },
     /** `md` (default) | `sm` (compact tag: 20px height, smaller text). */
     size: {
-        type: String,
+        type: String as PropType<BadgeSize>,
         default: "md",
-        validator: (v) => ["md", "sm"].includes(v),
+        validator: (v: string) =>
+            BADGE_SIZES.some((size) => size === v),
     },
 });
 

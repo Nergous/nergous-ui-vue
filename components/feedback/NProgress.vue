@@ -1,5 +1,21 @@
-<script setup>
-import { computed, useId } from "vue";
+<script setup lang="ts">
+import { computed, useId, type PropType } from "vue";
+
+type ProgressTone = "accent" | "ok" | "warn" | "danger";
+
+const PROGRESS_TONES: readonly ProgressTone[] = [
+    "accent",
+    "ok",
+    "warn",
+    "danger",
+]
+
+const COLORS: Record<ProgressTone, string> = {
+    accent: "var(--accent)",
+    ok: "var(--ok)",
+    warn: "var(--warn)",
+    danger: "var(--danger)",
+};
 
 // NProgress — horizontal determinate progress bar. Props: label, showValue
 // (print the %), tone (accent | ok | warn | danger). Exposes the WAI-ARIA
@@ -9,21 +25,18 @@ const props = defineProps({
     label: { type: String, default: "" },
     showValue: { type: Boolean, default: false },
     tone: {
-        type: String,
+        type: String as PropType<ProgressTone>,
         default: "accent",
-        validator: (v) => ["accent", "ok", "warn", "danger"].includes(v),
-    }, // accent | ok | warn | danger
+        validator: (v: string) => PROGRESS_TONES.some((tone) => tone === v),
+    },
 });
+
 const pct = computed(() => Math.max(0, Math.min(100, props.value)));
 const color = computed(
     () =>
-        ({
-            accent: "var(--accent)",
-            ok: "var(--ok)",
-            warn: "var(--warn)",
-            danger: "var(--danger)",
-        })[props.tone] || "var(--accent)",
+    COLORS[props.tone] || "var(--accent)",
 );
+
 const labelId = useId();
 </script>
 

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // NSpinner — indeterminate loading spinner. Props: size (px), width (stroke px).
 // Color inherits currentColor, matching the design's button spinner.
 // Decorative by default (aria-hidden); pass `label` to announce it as a live
