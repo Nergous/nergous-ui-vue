@@ -14,6 +14,8 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 - Real light/dark component and admin screenshots in README, with a reproducible
   isolated capture command. Screenshot assets stay outside the npm package.
+- TSDoc for public components, props, events, slots, composables and formatter
+  return values, with an automated TypeScript symbol-documentation gate.
 
 ## v1.0.3 — 2026-09-16
 
@@ -57,7 +59,7 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 - Select option clicks no longer re-activate a wrapping label and reopen the popup.
 - `NSelectWithSearch` uses English search/empty labels by default; consumers can
   supply localized text through its existing props.
-- Earlier modal/select fixes were shared with the Laravel snapshot. The production
+- Earlier modal/select fixes were shared with one vendored snapshot. The production
   stabilization above remains canonical-library-only until consumers update.
 
 ## v1.0.1 — 2026-07-18
@@ -77,8 +79,8 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 Initial release as a standalone repository (snapshot-distribution model).
 
-First public cut of the nergous-ui-vue Vue 3 design system, extracted from the
-`laravel-template-admin` project:
+First public cut of the nergous-ui-vue Vue 3 design system, extracted from an
+application-local component collection:
 
 - Themeable & density-aware design tokens (`styles/tokens.css`).
 - 40 components across primitives, forms, data-display, feedback, overlays and

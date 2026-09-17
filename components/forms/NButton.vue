@@ -33,8 +33,9 @@ const props = defineProps({
      *  accident; pass `submit` for a form's submit button. Ignored when `as`
      *  is not a `<button>`. */
     type: { type: String as PropType<ButtonType>, default: "button" },
-    /** Polymorphic root: render as a different element/component (e.g. the Inertia
-     *  `<Link>`, or `"a"`) instead of `<button>`. Keeps the button styling while
+    /** Polymorphic root: render as a different element/component (for example,
+     *  a router link component or `"a"`) instead of `<button>`. Keeps button
+     *  styling while
      *  yielding correct link semantics — avoids nesting a `<button>` inside an
      *  `<a>`. Non-button roots ignore `type`; a disabled non-button gets
      *  `aria-disabled` instead of the `disabled` attribute. */

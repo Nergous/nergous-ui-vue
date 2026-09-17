@@ -1,14 +1,24 @@
-// format.js — locale-agnostic formatting helpers for the nergous-ui-vue DS.
-// Pure Intl, with no hardcoded language or strings: the host app passes the active locale.
+// Locale-aware formatting helpers using Intl and an em dash for empty values.
 // Usage:
-//   import { createFormat } from "@/lib/nergous-ui-vue";
+//   import { createFormat } from "nergous-ui-vue";
 //   const { formatDateTime } = createFormat("ru-RU");
 
-export type DateInput = string | number | Date | null | undefined
+/**
+ * Native Date input: strings use host parsing, numbers represent epoch milliseconds.
+ * Null, undefined, empty strings, numeric zero, and NaN are treated as absent.
+ */
+export type DateInput = string | number | Date | null | undefined;
 
 const EMPTY = "—";
 
-// Parse a value into a valid Date, or null. Single parsing entry point (expects ISO 8601).
+/**
+ * Parse with the native Date constructor, or return an existing valid Date unchanged.
+ * Falsy values (including numeric zero and NaN) and invalid dates return null.
+ * No ISO-only validation is performed; use unambiguous strings for portable parsing.
+ * The input Date is neither cloned nor mutated.
+ * @param value - Date instance, date string, epoch milliseconds, or absent value.
+ * @returns A valid Date, or null for empty/invalid input.
+ */
 export function toDate(value: DateInput): Date | null {
     if (!value) return null;
     const d = value instanceof Date ? value : new Date(value);
@@ -27,7 +37,13 @@ const REL_UNITS: readonly [
     ["minute", 60],
 ];
 
-// Build a set of formatters bound to one BCP-47 locale. Intl instances are cached in the closure.
+/**
+ * Create formatters with Intl instances cached separately for each call.
+ * Dates use the host time zone; omitted locale uses the host default. Malformed
+ * locale identifiers can throw during construction. No global locale state changes.
+ * @param locale - BCP 47 locale identifier or ordered preference list.
+ * @returns Date parsing, date/time, relative-time, and number formatting methods.
+ */
 export function createFormat(locale?: string | string[]) {
     const dtf = new Intl.DateTimeFormat(locale, {
         day: "2-digit",
@@ -47,21 +63,42 @@ export function createFormat(locale?: string | string[]) {
     const nf = new Intl.NumberFormat(locale);
 
     return {
+        /**
+         * Parse a date without cloning existing Date instances.
+         * @param value - Native date input; numeric zero and other empty/invalid inputs yield null.
+         * @returns A valid Date or null.
+         */
         toDate,
 
-        // Date + time, e.g. ru → "12.03.2025, 10:00".
+        /**
+         * Format a numeric day/month/year and hour/minute in the host time zone.
+         * Order, punctuation, and hour cycle follow the resolved locale.
+         * @param value - Date input; empty/invalid values, including numeric zero, yield an em dash.
+         * @returns The localized date/time, or an em dash.
+         */
         formatDateTime(value: DateInput) {
             const d = toDate(value);
             return d ? dtf.format(d) : EMPTY;
         },
 
-        // Short date, e.g. ru → "12 мар. 2025 г.", en → "Mar 12, 2025".
+        /**
+         * Format a numeric day/year and short month in the host time zone.
+         * @param value - Date input; empty/invalid values, including numeric zero, yield an em dash.
+         * @returns The localized short date, or an em dash.
+         */
         formatDateShort(value: DateInput) {
             const d = toDate(value);
             return d ? dshort.format(d) : EMPTY;
         },
 
-        // Relative time, e.g. ru → "2 мин назад", "вчера", "сейчас".
+        /**
+         * Format time relative to Date.now() at each call, with automatic locale wording.
+         * Round to seconds, choose the largest matching fixed unit (365-day year,
+         * 30-day month, day, hour, minute), then round that unit's count.
+         * Rounded differences below a minute use zero seconds, not a seconds count.
+         * @param value - Date input; empty/invalid values, including numeric zero, yield an em dash.
+         * @returns Localized relative time, or an em dash.
+         */
         formatRelative(value: DateInput) {
             const d = toDate(value);
             if (!d) return EMPTY;
@@ -76,7 +113,13 @@ export function createFormat(locale?: string | string[]) {
             return rtf.format(0, "second"); // ru: "сейчас", en: "now"
         },
 
-        // Grouped large numbers, e.g. ru → 1284 → "1 284".
+        /**
+         * Format finite numbers using default Intl grouping and fraction rounding.
+         * Nonblank strings use Number conversion; zero is valid. Null, undefined,
+         * blank strings, NaN, and infinities produce an em dash.
+         * @param value - Number, numeric string, or absent value.
+         * @returns The localized number, or an em dash.
+         */
         formatNumber(value: string | number | null | undefined) {
             if (value == null || (typeof value === "string" && !value.trim()))
                 return EMPTY;

@@ -7,6 +7,7 @@ devDependencies; package runtime dependencies remain empty.
 ```sh
 npm ci --ignore-scripts
 npx playwright install chromium
+npm run typecheck
 npm test
 ```
 
@@ -15,8 +16,9 @@ On Linux CI, install browser system dependencies with
 
 ## Gates
 
-- test:static compiles all 41 component SFCs and 2 examples and checks public
-  imports/type declarations.
+- typecheck validates TypeScript and Vue SFC source under strict compiler settings.
+- test:static compiles all 41 component SFCs and 2 examples, checks public
+  imports/type declarations and verifies public TSDoc through TypeScript's symbol API.
 - test:types checks valid/invalid public TypeScript usage.
 - test:browser runs isolated Playwright regressions with external requests blocked;
   axe checks focus/name/form surfaces. Tall-modal tests cover light/dark and all
@@ -31,6 +33,18 @@ No gate loads a consumer environment file, starts a backend or connects to an
 application database/API. npm may contact the package registry during installation.
 Generated files stay under ignored .test-output. Do not run these
 checks against a live application. There is no library dist output.
+
+## Public documentation style
+
+- Write public comments in English with `/** */` TSDoc blocks.
+- Put component and prop documentation in `index.d.ts`; npm consumers resolve this
+  file through the package `types` and `exports` fields.
+- Add `@param name - description` for each public function argument and `@returns`
+  for every non-constructor function, including methods returned by composables.
+- State defaults, side effects, shared singleton state and important input rules.
+- Keep implementation comments short and use `//` only for internal behavior.
+- Import examples from `nergous-ui-vue`; do not reference application-local aliases
+  or integration-specific frameworks.
 
 ## README screenshots
 

@@ -48,7 +48,7 @@ const effectiveType = computed(() =>
 // Native <input>.value is ALWAYS a string. Coerce on the way out so v-model
 // holds the right JS type: number/range -> Number; everything else (incl. date,
 // which emits an ISO "2026-06-24" string) stays a string. Mirrors Vue's
-// built-in .number — empty input stays "" (Laravel turns it into null).
+// built-in .number — empty input stays an empty string.
 function onInput(e: Event) {
     const target = e.target
     if (!(target instanceof HTMLInputElement)) return

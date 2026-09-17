@@ -14,7 +14,7 @@ Choose an explicitly published version or an approved local archive.
    Raw component deep imports are not public package entry points.
 5. Use `nergous-ui-vue-reset` on body if the reset is desired. The older
    `nergouscit-reset` selector is retained as a compatibility alias.
-6. Update the early HTML/Blade anti-flash script using the guarded/validated example
+6. Update the early HTML anti-flash script using the guarded/validated example
    in README. New keys: nergous-ui-vue-theme and nergous-ui-vue-density.
    Legacy nergouscit-theme/density values are read if new keys are absent; old keys
    are not deleted. The canonical constants remain exported.
@@ -34,10 +34,9 @@ Choose an explicitly published version or an approved local archive.
 - NDropzone filters types and single-file count in both picking and dropping paths.
 - Titleless windows support a meaningful dialogLabel; existing titles are unchanged.
 
-Laravel can continue using Inertia for application navigation while consuming the
-same presentational Vue package. A Go-backed Vue SPA imports the same package in
-its web project; API calls and routes stay in that SPA. Do not add a second copy
-of Vue or the library's singleton state.
+Keep application navigation, API calls and routes in the consuming application.
+The package supplies presentational Vue components and shared UI state only. Do
+not add a second copy of Vue or duplicate the library's singleton state.
 
 Rollback: restore the consumer's previous manifest/lockfile/import changes and
 retained snapshot (or previous package version). No database migration or destructive

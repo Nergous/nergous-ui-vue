@@ -7,8 +7,8 @@ import NBrand from "./NBrand.vue";
 // v-model:collapsed toggles the narrow icon-only mode. #footer slot receives { collapsed }.
 // groups: [{ label, items: [{ id, label, icon, badge }] }]
 // brand:  { name, sub, glyph }
-// If an item has an `href` it renders as `linkAs` (defaults to <a>); pass a
-// router link component (e.g. Inertia <Link>) via `linkAs`. The active item is
+// If an item has an `href` it renders as `linkAs` (defaults to <a>); pass any
+// compatible router link component via `linkAs`. The active item is
 // driven by `modelValue` (derive it from the current route in the parent) so the
 // component stays framework-agnostic.
 type SidebarValue = string | number;

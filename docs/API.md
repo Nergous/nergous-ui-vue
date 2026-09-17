@@ -5,6 +5,18 @@ component paths and composables are not supported package subpaths. All 41
 component props and event/slot payloads are declared in `../index.d.ts`; the
 README lists component purposes. Components are named imports, not an app plugin.
 
+## Editor documentation
+
+Public declarations in `../index.d.ts` use TSDoc comments. Component symbols,
+props, events, slots, composable methods and formatter return values therefore
+appear in TypeScript-aware editor hover and completion UI. Vue templates require
+the editor's Vue language support so component prop information can be surfaced.
+
+Keep public documentation on the declaration that consumers import. Use `/** */`
+comments, document every public property, add `@param` for function arguments and
+`@returns` for return values. Runtime source comments can explain implementation,
+but they do not replace the package declaration comments used by npm consumers.
+
 ## Props, events and slots
 
 All props are optional except `NIcon.name`. Defaults are defined next to each

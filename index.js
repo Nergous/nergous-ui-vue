@@ -1,10 +1,14 @@
-// nergous-ui-vue — Vue 3 source-package entry point; version in package.json.
-// Usage: import { NButton, useToast } from 'nergous-ui-vue'
-//
-// Named imports only. Global registration via app.use() is intentionally not
-// supported (editor autocomplete + a page's real dependencies stay visible).
-// The components/<category>/ layout is an implementation detail — import from
-// this barrel, never via deep paths.
+/**
+ * Public Vue 3 source-package entry point with named exports; no app.use plugin.
+ * Import components, composables, and formatters from "nergous-ui-vue".
+ *
+ * Evaluation loads global design-token CSS and evaluates the theme module, which
+ * reads persisted settings and updates document-root attributes when available.
+ * Theme and toast state are module singletons shared by consumers of this entry.
+ * Function contracts are documented at their source declarations; component
+ * contracts are documented alongside their props.
+ * @packageDocumentation
+ */
 import "./styles/tokens.css";
 
 // primitives

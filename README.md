@@ -40,7 +40,8 @@ Screenshots are hosted in the repository and are not included in the npm archive
 
 The package ships Vue SFC source, CSS, fonts and TypeScript declarations; a
 generated bundle is not required. Consumers need Vue 3.5+ and a Vue bundler plugin.
-There is no dependency on Laravel, Inertia, Vue Router or a Go API.
+Application routing, data access, authentication and backend integration stay in
+the consuming application.
 
 For a local/unpublished release, run `npm pack --ignore-scripts` here and install
 the resulting archive with `npm install /path/to/package.tgz` in each consumer.
@@ -53,14 +54,16 @@ npm install nergous-ui-vue
 No automatic publishing is configured; packing is not publishing.
 
 ```js
-import { NButton, NModal, useTheme } from 'nergous-ui-vue'
+import { NButton, NModal, useTheme } from "nergous-ui-vue";
 // The entry imports tokens. An explicit stylesheet import is also available:
-import 'nergous-ui-vue/styles'
+import "nergous-ui-vue/styles";
 ```
 
 See [API contracts](docs/API.md), [migration](docs/MIGRATION.md), and
-[development/release checks](https://github.com/Nergous/nergous-ui-vue/blob/HEAD/docs/DEVELOPMENT.md). `index.d.ts` covers all public
-components, events, scoped slots and composables.
+[development/release checks](https://github.com/Nergous/nergous-ui-vue/blob/HEAD/docs/DEVELOPMENT.md).
+`index.d.ts` documents all public components, props, events, scoped slots,
+composables and formatter return values. TypeScript-aware editors show these
+TSDoc descriptions on hover and during completion.
 
 ## Usage
 
@@ -70,22 +73,24 @@ page's real dependencies visible).
 
 ```vue
 <script setup>
-import { NButton, NBadge, useToast } from 'nergous-ui-vue'
-const toast = useToast()
+import { NButton, NBadge, useToast } from "nergous-ui-vue";
+
+const toast = useToast();
 </script>
 ```
 
 > The entry imports styles automatically. To load only the stylesheet, use
-> `import 'nergous-ui-vue/styles'`.
+> `import "nergous-ui-vue/styles"`.
 
 ## Themes and density
 
 ```vue
 <script setup>
-import { useTheme } from 'nergous-ui-vue'
-const { theme, density, toggle, setTheme, setDensity } = useTheme()
-// theme   → ref('light' | 'dark')
-// density → ref('compact' | 'comfortable' | 'spacious')
+import { useTheme } from "nergous-ui-vue";
+
+const { theme, density, toggle, setTheme, setDensity } = useTheme();
+// theme   → ref("light" | "dark")
+// density → ref("compact" | "comfortable" | "spacious")
 </script>
 
 <template>
@@ -111,21 +116,26 @@ HTML head, reading the same `localStorage` keys `useTheme` uses. Those keys are
 exported so you don't hardcode them:
 
 ```js
-import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from 'nergous-ui-vue'
-// THEME_STORAGE_KEY   === 'nergous-ui-vue-theme'
-// DENSITY_STORAGE_KEY === 'nergous-ui-vue-density'
+import { THEME_STORAGE_KEY, DENSITY_STORAGE_KEY } from "nergous-ui-vue";
+// THEME_STORAGE_KEY   === "nergous-ui-vue-theme"
+// DENSITY_STORAGE_KEY === "nergous-ui-vue-density"
 ```
 
 ```html
 <script>
-  var d = document.documentElement;
-  var theme = 'light', density = 'comfortable';
-  try {
-    theme = localStorage.getItem('nergous-ui-vue-theme') ?? localStorage.getItem('nergouscit-theme') ?? theme;
-    density = localStorage.getItem('nergous-ui-vue-density') ?? localStorage.getItem('nergouscit-density') ?? density;
-  } catch (_) { /* Storage can be unavailable. */ }
-  d.dataset.theme = ['light', 'dark'].includes(theme) ? theme : 'light';
-  d.dataset.density = ['compact', 'comfortable', 'spacious'].includes(density) ? density : 'comfortable';
+    var root = document.documentElement;
+    var theme = "light";
+    var density = "comfortable";
+    try {
+        theme = localStorage.getItem("nergous-ui-vue-theme") ?? theme;
+        density = localStorage.getItem("nergous-ui-vue-density") ?? density;
+    } catch (_) {
+        // Storage can be unavailable.
+    }
+    root.dataset.theme = ["light", "dark"].includes(theme) ? theme : "light";
+    root.dataset.density = ["compact", "comfortable", "spacious"].includes(density)
+        ? density
+        : "comfortable";
 </script>
 ```
 
@@ -135,8 +145,9 @@ Render `<NToaster />` once near the app root, then push messages from anywhere:
 
 ```vue
 <script setup>
-import { NToaster, useToast } from 'nergous-ui-vue'
-const toast = useToast()
+import { NToaster, useToast } from "nergous-ui-vue";
+
+const toast = useToast();
 </script>
 
 <template>
@@ -166,17 +177,19 @@ no hardcoded language; the host app passes the active BCP-47 locale:
 
 ```vue
 <script setup>
-import { createFormat } from 'nergous-ui-vue'
-const { formatDateTime, formatDateShort, formatRelative, formatNumber } = createFormat('en-US')
-// formatDateTime('2025-03-12T10:00:00Z') → "03/12/2025, 10:00 AM"
+import { createFormat } from "nergous-ui-vue";
+
+const { formatDateTime, formatDateShort, formatRelative, formatNumber } =
+    createFormat("en-US");
+// formatDateTime("2025-03-12T10:00:00Z") → "03/12/2025, 10:00 AM"
 // formatDateShort(...) → "Mar 12, 2025" · formatRelative(...) → "2 minutes ago"
 // formatNumber(1284) → "1,284"
 </script>
 ```
 
-Invalid/empty values render as an em dash (`—`). `toDate(value)` is the single
-parsing entry point (expects ISO 8601) and returns a `Date` or `null`; it is
-also exported standalone from the barrel.
+Invalid/empty values render as an em dash (`—`). `toDate(value)` uses the native
+`Date` parser and returns a valid `Date` or `null`; prefer ISO 8601 strings for
+portable parsing. The helper is also exported standalone from the barrel.
 
 ## Components
 
@@ -244,12 +257,19 @@ attributes on the scroll container's children.
 
 ```vue
 <script setup>
-import { ref } from 'vue'
-import { NCard, NBadge, NInput, NSegmented, NButton, NModal } from 'nergous-ui-vue'
+import { ref } from "vue";
+import {
+    NCard,
+    NBadge,
+    NInput,
+    NSegmented,
+    NButton,
+    NModal,
+} from "nergous-ui-vue";
 
-const open = ref(false)
-const q = ref('')
-const role = ref('editor')
+const open = ref(false);
+const q = ref("");
+const role = ref("editor");
 </script>
 
 <template>
