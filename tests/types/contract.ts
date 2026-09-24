@@ -39,6 +39,10 @@ const pagination: InstanceType<typeof NPagination>["$props"] = {
     jumpButtonLabel: "Go",
     totalLabel: "of",
     jumpErrorLabel: "Enter a valid page number",
+    pageSize: 25,
+    pageSizes: [10, 25, 50],
+    pageSizeLabel: "Rows per page",
+    "onUpdate:pageSize": (size) => size.toFixed(0),
 };
 void table;
 void drop;
@@ -59,6 +63,8 @@ const badButton: InstanceType<typeof NButton>["$props"] = { loading: "yes" };
 const badPagination: InstanceType<typeof NPagination>["$props"] = {
     // @ts-expect-error jumpable is boolean
     jumpable: "yes",
+    // @ts-expect-error pageSizes is a number list
+    pageSizes: ["10"],
 };
 void bad;
 void badOptions;

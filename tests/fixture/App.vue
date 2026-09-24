@@ -28,6 +28,7 @@ const html = ref(
 const selected = ref("a"),
     page = ref(10),
     pages = ref(3),
+    pageSize = ref(10),
     parentSubmits = ref(0),
     modal = ref(false),
     drawer = ref(false),
@@ -43,6 +44,7 @@ const audit = (window.audit = {
     html,
     page,
     pages,
+    pageSize,
     parentSubmits,
     modal,
     drawer,
@@ -109,7 +111,13 @@ const FakeLink = defineComponent({
         </template>
         <template v-else-if="mode === 'pagination'"
             ><form @submit.prevent="parentSubmits++">
-                <NPagination v-model:page="page" :pages="pages" jumpable />
+                <NPagination
+                    v-model:page="page"
+                    v-model:page-size="pageSize"
+                    :pages="pages"
+                    :page-sizes="[10, 25, 50]"
+                    jumpable
+                />
             </form>
         </template>
         <template v-else-if="['overlay', 'tall', 'unnamed'].includes(mode)">

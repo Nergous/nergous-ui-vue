@@ -331,6 +331,13 @@ test("pagination normalizes and table checkbox keyboard never activates row", as
     await expect(
         page.getByRole("button", { name: "Go", exact: true }),
     ).toBeDisabled();
+    const sizeSelect = page.getByRole("combobox", { name: "Rows per page" });
+    await expect(sizeSelect).toContainText("10");
+    await sizeSelect.press("Enter");
+    await page.getByRole("option", { name: "25" }).click();
+    await expect(sizeSelect).toContainText("25");
+    expect(await page.evaluate(() => window.audit.pageSize.value)).toBe(25);
+    expect(await page.evaluate(() => window.audit.parentSubmits.value)).toBe(0);
     await load(page, "table");
     const check = page.locator("tbody [role=checkbox]").first();
     await check.press("Space");

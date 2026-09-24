@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, useId, watch } from "vue";
+import { computed, ref, useId, watch, type PropType } from "vue";
 import NButton from "../forms/NButton.vue";
+import NSelect from "../forms/NSelect.vue";
 import NIcon from "../primitives/NIcon.vue";
+import { provideFormField } from "../../composables/useFormField.ts";
 
 // NPagination — page navigation. v-model:page is the current page; pages = total count.
+// Optional v-model:pageSize with pageSizes shows a rows-per-page selector; the
+// consumer reloads its data when the size changes.
 // Locale-agnostic: all visible and accessible labels come from props (English
 // defaults). The app may also pass an `aria-label` for the <nav> landmark.
 const props = defineProps({
@@ -16,9 +20,16 @@ const props = defineProps({
     jumpButtonLabel: { type: String, default: "Go" },
     totalLabel: { type: String, default: "of" },
     jumpErrorLabel: { type: String, default: "Enter a valid page number" },
+    pageSize: { type: Number, default: 0 },
+    pageSizes: {
+        type: Array as PropType<number[]>,
+        default: () => [],
+    },
+    pageSizeLabel: { type: String, default: "Rows per page" },
 });
 const emit = defineEmits<{
     "update:page": [page: number];
+    "update:pageSize": [pageSize: number];
 }>();
 const totalPages = computed(() =>
     Number.isFinite(props.pages) ? Math.max(1, Math.floor(props.pages)) : 1,
@@ -30,6 +41,34 @@ const currentPage = computed(() =>
 );
 const jumpInputId = `n-pg-jump-${useId()}`;
 const jumpErrorId = `${jumpInputId}-error`;
+const sizeLabelId = `n-pg-size-${useId()}`;
+
+// Positive whole sizes, deduplicated and sorted; the current size is kept
+// selectable even when the consumer omits it from pageSizes.
+const sizeOptions = computed(() => {
+    const sizes = new Set(
+        props.pageSizes.filter((size) => Number.isInteger(size) && size > 0),
+    );
+    if (sizes.size && Number.isInteger(props.pageSize) && props.pageSize > 0)
+        sizes.add(props.pageSize);
+    return [...sizes]
+        .sort((a, b) => a - b)
+        .map((size) => ({ value: size, label: String(size) }));
+});
+
+// Name the nested NSelect through the same contract NFormField uses.
+provideFormField({
+    labelledby: computed(() => sizeLabelId),
+    describedBy: computed(() => undefined),
+    invalid: computed(() => false),
+    required: computed(() => false),
+});
+
+function changePageSize(value: string | number): void {
+    const size = Number(value);
+    if (Number.isInteger(size) && size > 0 && size !== props.pageSize)
+        emit("update:pageSize", size);
+}
 const targetPage = ref<number | string>(currentPage.value);
 const normalizedTarget = computed(() => {
     if (targetPage.value === "") return null;
@@ -92,6 +131,18 @@ const items = computed<Array<number | string>>(() => {
 
 <template>
     <nav class="n-pg">
+        <div v-if="sizeOptions.length" class="n-pg__size">
+            <span :id="sizeLabelId" class="n-pg__jump-label">
+                {{ pageSizeLabel }}
+            </span>
+            <NSelect
+                class="n-pg__size-select"
+                :model-value="pageSize"
+                :options="sizeOptions"
+                @update:model-value="changePageSize"
+            />
+        </div>
+
         <div class="n-pg__pages">
             <button
                 type="button"
@@ -179,15 +230,20 @@ const items = computed<Array<number | string>>(() => {
     gap: var(--sp-3);
 }
 .n-pg__pages,
-.n-pg__jump {
+.n-pg__jump,
+.n-pg__size {
     display: inline-flex;
     align-items: center;
 }
 .n-pg__pages {
     gap: 6px;
 }
-.n-pg__jump {
+.n-pg__jump,
+.n-pg__size {
     gap: var(--sp-2);
+}
+.n-pg__size-select {
+    min-width: 9ch;
 }
 .n-pg__jump-label,
 .n-pg__jump-total {

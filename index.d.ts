@@ -463,7 +463,7 @@ export declare const NTabs: UIComponent<
     },
     Update
 >;
-/** Controlled pagination with optional direct page navigation. */
+/** Controlled pagination with optional direct page navigation and page-size selection. */
 export declare const NPagination: UIComponent<
     {
         /** Current one-based page. @defaultValue 1 */
@@ -484,10 +484,18 @@ export declare const NPagination: UIComponent<
         totalLabel?: string;
         /** Accessible validation text for an invalid direct page number. @defaultValue "Enter a valid page number" */
         jumpErrorLabel?: string;
+        /** Current rows-per-page value for the page-size selector. @defaultValue 0 */
+        pageSize?: number;
+        /** Page-size choices. A non-empty list shows the selector. @defaultValue [] */
+        pageSizes?: number[];
+        /** Visible label for the page-size selector. @defaultValue "Rows per page" */
+        pageSizeLabel?: string;
     },
     {
         /** Updated one-based page. */
         "update:page": [page: number];
+        /** Selected rows-per-page value. */
+        "update:pageSize": [pageSize: number];
     }
 >;
 /** Sortable and selectable data table with optional client-side pagination. */

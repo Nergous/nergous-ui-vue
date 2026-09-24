@@ -3,6 +3,13 @@
 All notable changes to the nergous-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
+## v1.0.6 - 2026-09-24
+
+### Added
+
+- Add an opt-in rows-per-page selector to `NPagination` through
+  `v-model:pageSize`, `pageSizes` and a locale-agnostic `pageSizeLabel`.
+
 ## v1.0.5 - 2026-09-24
 
 ### Added
