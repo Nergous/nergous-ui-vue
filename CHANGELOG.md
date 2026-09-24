@@ -3,6 +3,13 @@
 All notable changes to the nergous-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
+## v1.0.5 - 2026-09-24
+
+### Added
+
+- Add opt-in direct page navigation to `NPagination` with validated input,
+  keyboard submission and locale-agnostic labels.
+
 ## v1.0.4 - 2026-09-17
 
 ### Fixed

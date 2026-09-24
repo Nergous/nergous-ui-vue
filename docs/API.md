@@ -30,7 +30,7 @@ unique keys named by `rowKey` (default `id`).
 | NInput, NTextarea, NRichText | modelValue / update:modelValue | no content slot |
 | NSelect, NSelectWithSearch, NRadioGroup, NSegmented, NTabs | modelValue / update:modelValue; options/tabs | no native option slot |
 | NCheckbox, NSwitch | Boolean modelValue / update:modelValue | default label |
-| NPagination | page / update:page; pages normalized to at least 1 | none |
+| NPagination | page / update:page; pages normalized to at least 1; optional jumpable input with localized labels | none |
 | NModal, NDrawer | Boolean modelValue / update:modelValue, close | default; footer({close}) |
 | NLightbox | index / update:index; -1 closes | none |
 | NDropdown | select(item); item.action() also runs | default({open}): one trigger |
@@ -99,7 +99,9 @@ spoofed: enforce MIME/signature, size and authorization on the backend.
 
 NDataTable client pagination clamps after row-count/page-size changes; NPagination
 also normalizes standalone controlled input. Server pagination belongs to the
-consumer. Use manualSort with sortKey/sortDir for server sorting.
+consumer. Set jumpable to show a validated direct page-number input; localize its
+text with jumpLabel, jumpButtonLabel, totalLabel and jumpErrorLabel. Use
+manualSort with sortKey/sortDir for server sorting.
 
 ## Composables
 

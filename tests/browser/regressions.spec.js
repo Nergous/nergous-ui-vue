@@ -321,6 +321,16 @@ test("pagination normalizes and table checkbox keyboard never activates row", as
     await expect(page.locator('[aria-current="page"]')).toHaveText("3");
     await page.getByRole("button", { name: "Previous page" }).click();
     await expect(page.locator('[aria-current="page"]')).toHaveText("2");
+    const jumpInput = page.getByRole("spinbutton", { name: "Page" });
+    await jumpInput.fill("1");
+    await jumpInput.press("Enter");
+    await expect(page.locator('[aria-current="page"]')).toHaveText("1");
+    expect(await page.evaluate(() => window.audit.parentSubmits.value)).toBe(0);
+    await jumpInput.fill("4");
+    await expect(jumpInput).toHaveAttribute("aria-invalid", "true");
+    await expect(
+        page.getByRole("button", { name: "Go", exact: true }),
+    ).toBeDisabled();
     await load(page, "table");
     const check = page.locator("tbody [role=checkbox]").first();
     await check.press("Space");
@@ -511,7 +521,7 @@ test("toaster fits 320px, scroll offset honored, empty format values preserved",
 test("accessible names for titleless windows and axe smoke for audited surfaces", async ({
     page,
 }) => {
-    for (const mode of ["select", "rte", "drop", "unnamed"]) {
+    for (const mode of ["select", "rte", "drop", "pagination", "unnamed"]) {
         await load(page, mode);
         if (mode === "unnamed") {
             await page.locator("#open-modal").click();

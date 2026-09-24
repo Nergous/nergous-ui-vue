@@ -463,7 +463,7 @@ export declare const NTabs: UIComponent<
     },
     Update
 >;
-/** Controlled previous/next pagination. */
+/** Controlled pagination with optional direct page navigation. */
 export declare const NPagination: UIComponent<
     {
         /** Current one-based page. @defaultValue 1 */
@@ -474,6 +474,16 @@ export declare const NPagination: UIComponent<
         prevLabel?: string;
         /** Accessible label for the next-page button. */
         nextLabel?: string;
+        /** Show a direct page-number input and submit button. @defaultValue false */
+        jumpable?: boolean;
+        /** Visible label for the direct page-number input. @defaultValue "Page" */
+        jumpLabel?: string;
+        /** Visible label for the direct-navigation submit button. @defaultValue "Go" */
+        jumpButtonLabel?: string;
+        /** Visible label before the total page count. @defaultValue "of" */
+        totalLabel?: string;
+        /** Accessible validation text for an invalid direct page number. @defaultValue "Enter a valid page number" */
+        jumpErrorLabel?: string;
     },
     {
         /** Updated one-based page. */

@@ -230,7 +230,7 @@ portable parsing. The helper is also exported standalone from the barrel.
 | `NAnchorNav` | Section table-of-contents | `v-model` (active section), `sections: [{value,label,count}]`, `navLabel` — presentational; pair with `useScrollSpy` or use `NAnchoredForm` |
 | `NAnchoredForm` | Anchored single-page editor shell (edit) | `v-model`, `sections: [{value,label,count}]`, `sectionsLabel`, `height`, `offset`; slots `#section-<value>` (fields, scoped `{section,index}`), `#header`, `#status`, `#savebar`. Owns the scroll container + scroll-spy |
 | `NDataTable` | Data table | `columns`, `rows`, `selectable`, `v-model:selected`, `page-size`; controlled sorting via `sort-key`/`sort-dir` + `manual-sort` (server-side; the header syncs the arrow and `aria-sort`); slots `#cell-<key>`, `#bulk`, `#empty`; events `@row-click`, `@sort-change` |
-| `NPagination` | Pagination | `v-model:page`, `pages` |
+| `NPagination` | Pagination | `v-model:page`, `pages`, optional `jumpable` direct page input; localize with `jumpLabel`, `jumpButtonLabel`, `totalLabel`, `jumpErrorLabel` |
 | `NStatCard` | KPI card | `label`, `value`, `delta`, `trend` (up/down), `spark: number[]`, `icon` |
 | `NActivityRow` | Activity-feed row | `tone` (ok/info/danger/warn/accent), `icon`, `actor`, `verb`, `object`, `tag`, `time`, `meta`. Presentational — the localized verb/tag is passed in by the host |
 | `NDropzone` | Drag-and-drop upload | `accept`, `multiple`, `hint`; `@files` event |

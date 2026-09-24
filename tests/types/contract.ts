@@ -1,6 +1,7 @@
 import { h } from "vue";
 import {
     NButton,
+    NPagination,
     NSelect,
     NModal,
     NDataTable,
@@ -30,8 +31,18 @@ const table: InstanceType<typeof NDataTable>["$props"] = {
 const drop: InstanceType<typeof NDropzone>["$props"] = {
     onFiles: (files) => files[0]?.name,
 };
+const pagination: InstanceType<typeof NPagination>["$props"] = {
+    page: 2,
+    pages: 10,
+    jumpable: true,
+    jumpLabel: "Page",
+    jumpButtonLabel: "Go",
+    totalLabel: "of",
+    jumpErrorLabel: "Enter a valid page number",
+};
 void table;
 void drop;
+void pagination;
 useTheme().setTheme("dark");
 useToast().push({ title: "Saved", duration: 0 });
 createFormat("ru").formatNumber(null);
@@ -45,6 +56,11 @@ const badOptions: InstanceType<typeof NSelect>["$props"] = {
 };
 // @ts-expect-error pagination/type properties must not be silently any
 const badButton: InstanceType<typeof NButton>["$props"] = { loading: "yes" };
+const badPagination: InstanceType<typeof NPagination>["$props"] = {
+    // @ts-expect-error jumpable is boolean
+    jumpable: "yes",
+};
 void bad;
 void badOptions;
 void badButton;
+void badPagination;
