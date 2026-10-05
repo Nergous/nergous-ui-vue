@@ -40,6 +40,11 @@ const props = defineProps({
      *  `<a>`. Non-button roots ignore `type`; a disabled non-button gets
      *  `aria-disabled` instead of the `disabled` attribute. */
     as: { type: [String, Object, Function] as PropType<string | Component>, default: "button" },
+    /** Counter shown on the button (e.g. unread notifications). Empty string,
+     *  null and 0 hide it. An icon-only button shows it in the top-right corner;
+     *  its aria-label should then include the count, since aria-label replaces
+     *  the visible content as the accessible name. */
+    badge: { type: [String, Number] as PropType<string | number | null>, default: "" },
 });
 
 const slots = useSlots();
@@ -49,6 +54,9 @@ const iconOnly = computed(() => !!props.icon && !slots.default);
 // Native <button> root vs a polymorphic one (link/component).
 const isButton = computed(() => props.as === "button");
 const blocked = computed(() => props.disabled || props.loading);
+const hasBadge = computed(
+    () => props.badge !== "" && props.badge !== null && props.badge !== 0,
+);
 
 function guardActivation(event: Event) {
     if (!blocked.value) return;
@@ -83,7 +91,11 @@ if (
         :class="[
             'n-btn--' + variant,
             'n-btn--' + size,
-            { 'n-btn--block': block, 'n-btn--icon': iconOnly },
+            {
+                'n-btn--block': block,
+                'n-btn--icon': iconOnly,
+                'n-btn--badged': hasBadge,
+            },
             tone ? 'n-btn--tone-' + tone : '',
         ]"
         :disabled="isButton ? disabled || loading : undefined"
@@ -97,6 +109,12 @@ if (
         <span v-if="loading" class="n-btn__spin" />
         <NIcon v-else-if="icon" :name="icon" :size="size === 'lg' ? 18 : 16" />
         <slot />
+        <span
+            v-if="hasBadge"
+            class="n-btn__badge"
+            :aria-hidden="iconOnly || undefined"
+            >{{ badge }}</span
+        >
     </component>
 </template>
 
@@ -211,5 +229,30 @@ if (
     to {
         transform: rotate(360deg);
     }
+}
+.n-btn--badged {
+    position: relative;
+}
+.n-btn__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--danger);
+    color: var(--surface);
+    font-size: 10.5px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.n-btn--icon .n-btn__badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    box-shadow: 0 0 0 2px var(--surface);
+    pointer-events: none;
 }
 </style>

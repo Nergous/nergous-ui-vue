@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 // NLightbox — fullscreen image viewer overlay. Dialog semantics with focus trap,
 // scroll lock and Escape/Arrow keys. Presentation-only: pass items + v-model:index.
 import { ref, watch, onUnmounted, type PropType } from "vue";
@@ -22,10 +23,17 @@ const props = defineProps({
     // Current item index; -1 = closed. Use with v-model:index.
     index: { type: Number, default: -1 },
     // Accessible labels — English defaults; pass localized strings at the call site.
-    dialogLabel: { type: String, default: "Image viewer" },
-    closeLabel: { type: String, default: "Close" },
-    prevLabel: { type: String, default: "Previous" },
-    nextLabel: { type: String, default: "Next" },
+    dialogLabel: { type: String, default: undefined },
+    closeLabel: { type: String, default: undefined },
+    prevLabel: { type: String, default: undefined },
+    nextLabel: { type: String, default: undefined },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    dialogLabel: "lightbox.label",
+    closeLabel: "dialog.close",
+    prevLabel: "lightbox.prev",
+    nextLabel: "lightbox.next",
 });
 const emit = defineEmits<{
     "update:index": [index: number];
@@ -83,13 +91,13 @@ useDismiss(isOpen, close);
                 data-overlay
                 role="dialog"
                 aria-modal="true"
-                :aria-label="dialogLabel"
+                :aria-label="lbl.dialogLabel"
                 @click.self="close"
             >
                 <button
                     type="button"
                     class="n-lb__btn n-lb__x"
-                    :aria-label="closeLabel"
+                    :aria-label="lbl.closeLabel"
                     @click="close"
                 >
                     <NIcon name="x" :size="22" />
@@ -98,7 +106,7 @@ useDismiss(isOpen, close);
                     v-if="index > 0"
                     type="button"
                     class="n-lb__btn n-lb__prev"
-                    :aria-label="prevLabel"
+                    :aria-label="lbl.prevLabel"
                     @click="prev"
                 >
                     <NIcon name="chevron-left" :size="26" />
@@ -112,7 +120,7 @@ useDismiss(isOpen, close);
                     v-if="index < items.length - 1"
                     type="button"
                     class="n-lb__btn n-lb__next"
-                    :aria-label="nextLabel"
+                    :aria-label="lbl.nextLabel"
                     @click="next"
                 >
                     <NIcon name="chevron-right" :size="26" />

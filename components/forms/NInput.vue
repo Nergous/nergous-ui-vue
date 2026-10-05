@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import { computed, ref, type PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFormField } from "../../composables/useFormField.ts";
@@ -27,10 +28,15 @@ const props = defineProps({
     disabled: { type: Boolean, default: false },
     size: { type: String as PropType<InputSize>, default: "md" },
     // Accessible names for the password reveal toggle (English defaults; app localizes).
-    revealLabel: { type: String, default: "Show password" },
-    hideLabel: { type: String, default: "Hide password" },
+    revealLabel: { type: String, default: undefined },
+    hideLabel: { type: String, default: undefined },
     // v-model modifiers (.number / .trim) arrive here for custom components.
     modelModifiers: { type: Object as PropType<InputModifiers>, default: () => ({}) },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    revealLabel: "input.reveal",
+    hideLabel: "input.hide",
 });
 const emit = defineEmits < { "update:modelValue": [value: InputValue] }>();
 
@@ -100,7 +106,7 @@ defineOptions({
             v-if="isPassword"
             type="button"
             class="n-input__reveal"
-            :aria-label="revealed ? hideLabel : revealLabel"
+            :aria-label="revealed ? lbl.hideLabel : lbl.revealLabel"
             :aria-pressed="revealed"
             :disabled="disabled"
             @click="revealed = !revealed"

@@ -163,6 +163,11 @@ export const PATHS: Readonly<Record<string, readonly string[]>> = {
         "M15 3v18",
     ],
     rule: ["M3 12h18", "M8 6h8", "M8 18h8"],
+    columns: [
+        "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+        "M9 3v18",
+        "M15 3v18",
+    ],
     undo: ["M3 7v6h6", "M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"],
     redo: ["M21 7v6h-6", "M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"],
     maximize: [

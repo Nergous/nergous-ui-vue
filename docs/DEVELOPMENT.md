@@ -17,7 +17,7 @@ On Linux CI, install browser system dependencies with
 ## Gates
 
 - typecheck validates TypeScript and Vue SFC source under strict compiler settings.
-- test:static compiles all 41 component SFCs and 2 examples, checks public
+- test:static compiles all 51 component SFCs and 2 examples, checks public
   imports/type declarations and verifies public TSDoc through TypeScript's symbol API.
 - test:types checks valid/invalid public TypeScript usage.
 - test:browser runs isolated Playwright regressions with external requests blocked;
@@ -27,7 +27,9 @@ On Linux CI, install browser system dependencies with
   using the npm cache and downloading missing registry data, type-checks it, builds it and renders a button
   with the installed package. It verifies fonts and excludes dev/test artifacts.
 - npm run dev runs only tests/fixture. Select a scenario through ?mode=select,
-  rte, overlay, tall, table, command, lightbox or toaster.
+  rte, overlay, tall, table, command, lightbox, toaster, kit (new list/form
+  components), locale (kit with ruMessages), table-matching, pager-hide,
+  page-spy or sidebar.
 
 No gate loads a consumer environment file, starts a backend or connects to an
 application database/API. npm may contact the package registry during installation.

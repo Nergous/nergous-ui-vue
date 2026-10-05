@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
+import { useLabels } from "../../composables/useLocale.ts";
 
 type NavValue = string | number;
 
@@ -14,7 +15,7 @@ interface NavSection {
 // Purely presentational: it neither scrolls nor scroll-spies — NAnchoredForm
 // owns the scroll container and drives the active value through v-model. Use
 // standalone only if you wire those yourself (e.g. via useScrollSpy).
-defineProps({
+const props = defineProps({
     modelValue: {
         type: [String, Number] as PropType<NavValue>,
         default: "",
@@ -23,16 +24,17 @@ defineProps({
         type: Array as PropType<NavSection[]>,
         default: () => [],
     },
-    // Accessible name for the <nav> landmark (English default; app localizes).
-    navLabel: { type: String, default: "Sections" },
+    // Accessible name for the <nav> landmark: prop → provided locale → English.
+    navLabel: { type: String, default: undefined },
 });
+const lbl = useLabels(props, { navLabel: "nav.sections" });
 const emit = defineEmits<{
     "update:modelValue": [value: NavValue];
 }>();
 </script>
 
 <template>
-    <nav class="n-anchornav" :aria-label="navLabel">
+    <nav class="n-anchornav" :aria-label="lbl.navLabel">
         <button
             v-for="s in sections"
             :key="s.value"

@@ -44,6 +44,7 @@ import NButton from "./NButton.vue";
 import NCheckbox from "./NCheckbox.vue";
 import NFormField from "./NFormField.vue";
 import { useFormField } from "../../composables/useFormField.ts";
+import { useMessages } from "../../composables/useLocale.ts";
 import { sanitizeHtml, safeUrl } from "../../utils/sanitize.ts";
 
 const BASIC_IDS = [
@@ -239,7 +240,7 @@ const clean = (value: unknown): string =>
     sanitizeHtml(value, { rich: rich.value });
 
 // Accessible names for the toolbar and dialogs. English defaults; the call
-// site localizes via the `labels` prop.
+// site localizes via the `labels` prop or a provided locale (messages.richText).
 const DEFAULT_LABELS: Record<LabelKey, string> = {
     toolbar: "Formatting",
     bold: "Bold (Ctrl+B)",
@@ -295,7 +296,12 @@ const DEFAULT_LABELS: Record<LabelKey, string> = {
     colDelete: "Delete column",
     tableDelete: "Delete table",
 };
-const labels = computed(() => ({ ...DEFAULT_LABELS, ...props.labels }));
+const messages = useMessages();
+const labels = computed(() => ({
+    ...DEFAULT_LABELS,
+    ...(messages.value.richText as Partial<Record<LabelKey, string>>),
+    ...props.labels,
+}));
 
 const root = ref<HTMLElement | null>(null);
 const editable = ref<HTMLElement | null>(null);

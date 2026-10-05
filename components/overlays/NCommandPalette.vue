@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import {
     ref,
     computed,
@@ -34,12 +35,19 @@ const props = defineProps({
         type: Array as PropType<CommandItem[]>,
         default: () => [],
     },
-    placeholder: { type: String, default: "Search…" },
-    emptyText: { type: String, default: "No results" },
-    navHint: { type: String, default: "Navigate" },
-    selectHint: { type: String, default: "Select" },
+    placeholder: { type: String, default: undefined },
+    emptyText: { type: String, default: undefined },
+    navHint: { type: String, default: undefined },
+    selectHint: { type: String, default: undefined },
     shortcut: { type: Boolean, default: true }, // bind Cmd/Ctrl+K
     filter: { type: Boolean, default: true }, // false: parent owns filtering (server search)
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    placeholder: "command.placeholder",
+    emptyText: "command.empty",
+    navHint: "command.navigate",
+    selectHint: "command.select",
 });
 const emit = defineEmits<{
     "update:modelValue": [value: boolean];
@@ -155,7 +163,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
                     class="n-cmd"
                     role="dialog"
                     aria-modal="true"
-                    :aria-label="placeholder"
+                    :aria-label="lbl.placeholder"
                 >
                     <div class="n-cmd__head">
                         <NIcon name="search" :size="18" class="n-cmd__search" />
@@ -169,8 +177,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
                             aria-autocomplete="list"
                             :aria-controls="listId"
                             :aria-activedescendant="activeOptionId"
-                            :aria-label="placeholder"
-                            :placeholder="placeholder"
+                            :aria-label="lbl.placeholder"
+                            :placeholder="lbl.placeholder"
                         />
                         <kbd class="n-cmd__kbd">ESC</kbd>
                     </div>
@@ -197,12 +205,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
                             }}</span>
                         </div>
                         <div v-if="!results.length" class="n-cmd__empty">
-                            {{ emptyText }}
+                            {{ lbl.emptyText }}
                         </div>
                     </div>
                     <div class="n-cmd__foot">
-                        <span><kbd>↑↓</kbd> {{ navHint }}</span>
-                        <span><kbd>↵</kbd> {{ selectHint }}</span>
+                        <span><kbd>↑↓</kbd> {{ lbl.navHint }}</span>
+                        <span><kbd>↵</kbd> {{ lbl.selectHint }}</span>
                     </div>
                 </div>
             </div>

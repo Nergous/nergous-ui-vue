@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import { computed, type PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 
@@ -34,7 +35,11 @@ const props = defineProps({
         default: null,
     },
     // Accessible name for the <nav> landmark (English default; app localizes).
-    navLabel: { type: String, default: "Steps" },
+    navLabel: { type: String, default: undefined },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    navLabel: "nav.steps",
 });
 const emit = defineEmits<{
     "update:modelValue": [value: StepValue];
@@ -54,7 +59,7 @@ function stateOf(step: StepItem, i: number): StepState {
 </script>
 
 <template>
-    <nav class="n-stepper" :aria-label="navLabel">
+    <nav class="n-stepper" :aria-label="lbl.navLabel">
         <button
             v-for="(s, i) in steps"
             :key="s.value"

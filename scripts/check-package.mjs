@@ -44,6 +44,7 @@ for (const required of [
     "index.d.ts",
     "styles/tokens.css",
     "utils/sanitize.ts",
+    "locales/ru.ts",
     "LICENSE",
 ])
     assert.ok(names.includes(required), required);
@@ -56,7 +57,7 @@ const allowedRootFiles = new Set([
 for (const name of names) {
     assert.ok(
         allowedRootFiles.has(name) ||
-            /^(components\/.*\.vue|components\/primitives\/icons\.(?:js|ts)|composables\/.*\.(?:js|ts)|utils\/.*\.(?:js|ts)|styles\/.*\.css|fonts\/.*\.woff2|docs\/(?:API|MIGRATION)\.md)$/.test(name),
+            /^(components\/.*\.vue|components\/primitives\/icons\.(?:js|ts)|composables\/.*\.(?:js|ts)|utils\/.*\.(?:js|ts)|locales\/.*\.ts|styles\/.*\.css|fonts\/.*\.woff2|docs\/(?:API|MIGRATION)\.md)$/.test(name),
         "Unexpected package file: " + name,
     );
 }
@@ -149,7 +150,7 @@ try {
         await page.evaluate(
             () => window.packageExports.filter((n) => n.startsWith("N")).length,
         ),
-        41,
+        51,
     );
     assert.equal(
         await page
@@ -159,7 +160,7 @@ try {
     );
     assert.deepEqual(errors, []);
     console.log(
-        "PASS: archive installed cache-first, 41 exports, TypeScript, production build, CSS/fonts and rendered button. " +
+        "PASS: archive installed cache-first, 51 component exports, TypeScript, production build, CSS/fonts and rendered button. " +
             packed.filename,
     );
 } finally {

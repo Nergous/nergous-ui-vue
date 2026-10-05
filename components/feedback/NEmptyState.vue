@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import NIcon from "../primitives/NIcon.vue";
+import { useLabels } from "../../composables/useLocale.ts";
 
 // NEmptyState — placeholder for empty / no-results views.
 // Props: icon, title, description. Default slot is an optional action (e.g. a button).
 // For filter/search-driven empties, pass role="status" (falls through to the root)
 // so screen readers announce when results disappear.
-defineProps({
+const props = defineProps({
     icon: { type: String, default: "search" },
-    title: { type: String, default: "Nothing found" },
+    title: { type: String, default: undefined },
     description: { type: String, default: "" },
 });
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, { title: "empty.title" });
 </script>
 
 <template>
     <div class="n-empty">
         <div class="n-empty__icon"><NIcon :name="icon" :size="24" /></div>
-        <div v-if="title" class="n-empty__title">{{ title }}</div>
+        <div v-if="lbl.title" class="n-empty__title">{{ lbl.title }}</div>
         <div v-if="description" class="n-empty__desc">{{ description }}</div>
         <div v-if="$slots.default" class="n-empty__action"><slot /></div>
     </div>

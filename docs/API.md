@@ -1,7 +1,7 @@
 # Public API and behavior contracts
 
 Import only from `nergous-ui-vue` (or the existing vendored barrel). Internal
-component paths and composables are not supported package subpaths. All 41
+component paths and composables are not supported package subpaths. All 51
 component props and event/slot payloads are declared in `../index.d.ts`; the
 README lists component purposes. Components are named imports, not an app plugin.
 
@@ -29,13 +29,21 @@ unique keys named by `rowKey` (default `id`).
 |---|---|---|
 | NInput, NTextarea, NRichText | modelValue / update:modelValue | no content slot |
 | NSelect, NSelectWithSearch, NRadioGroup, NSegmented, NTabs | modelValue / update:modelValue; options/tabs | no native option slot |
+| NMultiSelect | array modelValue / update:modelValue, kept in options order | none |
 | NCheckbox, NSwitch | Boolean modelValue / update:modelValue | default label |
-| NPagination | page / update:page; pages normalized to at least 1; optional jumpable input with localized labels; optional pageSize / update:pageSize with pageSizes | none |
+| NPagination | page / update:page; pages normalized to at least 1; optional jumpable input; optional pageSize / update:pageSize with pageSizes; hideOnSinglePage with total | none |
 | NModal, NDrawer | Boolean modelValue / update:modelValue, close | default; footer({close}) |
+| NConfirmDialog | Boolean modelValue / update:modelValue; confirm, cancel (any dismissal) | default (below the message) |
+| NPopover | update:open | default({close}); label |
 | NLightbox | index / update:index; -1 closes | none |
 | NDropdown | select(item); item.action() also runs | default({open}): one trigger |
 | NCommandPalette | modelValue / update:modelValue; run(command), update:query | none |
-| NDataTable | selected / update:selected; row-click, sort-change({key,dir}) | cell-key({row,value}); bulk({selected,clear}); empty |
+| NDataTable | selected / update:selected; allMatching / update:allMatching; row-click, sort-change({key,dir}) | cell-key({row,value}); bulk({selected,allMatching,count,clear}); empty |
+| NFilterChips | remove(key), reset | none |
+| NColumnPicker | hidden / update:hidden | none |
+| NToolbar | none | search, default, actions |
+| NActionBar | dirty prop | default (actions); status({dirty}) |
+| NBreadcrumbs, NSortHandle, NIconTooltip | presentation; NSortHandle forwards listeners to its button | none |
 | NDropzone | files(File[]) | none |
 | NSidebar | modelValue / update:modelValue; navigate(item); collapsed prop | footer({collapsed}) |
 | NTopbar | toggle | left, default, right |
@@ -46,6 +54,9 @@ unique keys named by `rowKey` (default `id`).
 | NIcon, NAvatar, NAvatarGroup, NStatCard, NActivityRow, NToaster, NProgress, NSpinner, NSkeleton, NBrand | presentation props; toaster uses useToast | none |
 
 Native attributes follow the component root; NInput forwards them to its input.
+NSelect, NSelectWithSearch and NMultiSelect keep class/style on the wrapper and
+forward other attributes (aria-label, aria-labelledby, id, listeners) to the
+combobox button, so a select outside NFormField can be named with aria-label.
 Use NFormField for shared validation/label associations. For grouped controls
 (NRichText, NSelectWithSearch), use `tag="div"`. When no field wrapper exists,
 supply an accessible name to the actual interactive control.
@@ -126,6 +137,24 @@ non-empty pageSizes list with v-model:pageSize to show a rows-per-page selector
 labelled by pageSizeLabel; the consumer reloads data and usually resets the page.
 Use manualSort with sortKey/sortDir for server sorting.
 
+For server lists pass `total` (rows matching the filters) and
+`v-model:allMatching`. Once the whole page is selected the bulk bar offers
+"select all N"; then every row shows as selected, the bulk slot receives
+`allMatching: true` and `count = total`, and the app sends its filters instead of
+ids. Unticking a row leaves that mode and keeps the rest of the page selected.
+`stacked` renders rows as label/value cards below 640px viewport width; labels
+come from the column headings.
+
+## Localization
+
+Every built-in label has an English default. `app.use(createLocale(messages))`
+provides a dictionary to the app, `provideLocale(messages)` to one subtree (merged
+over an outer provider). Each label resolves as explicit prop → dictionary →
+English. Dictionaries are partial `Messages` objects, refs or getters; reactive
+sources switch language live. `enMessages` and `ruMessages` are built in;
+`richText` holds NRichText labels and merges under its `labels` prop.
+`useMessages()` returns the effective dictionary for app components.
+
 ## Composables
 
 - useTheme(): shared theme/density refs, toggle(), setTheme(), setDensity().
@@ -138,9 +167,26 @@ Use manualSort with sortKey/sortDir for server sorting.
 - useScrollSpy(ref|getElement,{offset}): active ref, scrollTo(value), recompute().
   Sections use data-spy and offsetTop relative to a positioned scroll container.
   Offset may be a number/getter and applies to both tracking and scrolling.
-- createFormat(locale): formatDateTime, formatDateShort, formatRelative,
-  formatNumber, toDate. Empty/invalid display input returns an em dash; numeric zero
-  remains zero. toDate returns Date|null. Date strings should be ISO 8601.
+  With `scroller: "ancestor"` the nearest scrolling ancestor (or the window)
+  scrolls; the first section is active at the top and the last at the bottom.
+- createFormat(locale, {timeZone}): formatDateTime, formatDateShort,
+  formatRelative, formatNumber, formatBytes, plural, toDate. Empty/invalid display
+  input returns an em dash; numeric zero remains zero. toDate returns Date|null.
+  Date strings should be ISO 8601. An invalid timeZone falls back to the host zone.
+- useConfirm<T>(): reactive { open, payload, loading, ask(payload), close(),
+  run(action) } for NConfirmDialog; run keeps the dialog open and rethrows on error.
+- useSortable(source, commit, label, {commitDelay, positionLabel}): items, list,
+  draggingId, announcement, startDrag, onHandleKeydown, move. Rows are direct
+  children of the positioned list with data-sort-id; render announcement in a
+  polite live region. Commit receives ids once the order changed.
+- useHotkeys(map, {inInputs}): window shortcuts while mounted; letters/digits
+  match physical keys (works under Cyrillic layouts). Plain keys skip text fields
+  unless inInputs; mod combos always fire.
+- useColumnVisibility(columns, optional, storageKey): visible columns, picker
+  choices and hidden keys remembered in localStorage.
+- installEnterSubmit({boundary, submit}): Enter in a text field clicks the
+  nearest [data-enter-submit] up to a dialog/[data-enter-scope]/boundary;
+  Ctrl/Cmd+Enter in multiline fields. Returns an uninstall function.
 
 ## Boundaries
 

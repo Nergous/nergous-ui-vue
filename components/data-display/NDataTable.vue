@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import {
     ref,
     computed,
@@ -12,6 +13,9 @@ import NPagination from "./NPagination.vue";
 
 // NDataTable — sortable, selectable data grid with optional client-side paging.
 // v-model:selected = picked row keys; emits row-click and sort-change.
+// Server lists: pass `total` (rows matching the filters) and v-model:allMatching
+// to offer "select all N" once the whole page is picked; the app then sends its
+// filters instead of ids. `stacked` turns rows into label/value cards on phones.
 // Slots: #cell-<key> (custom cell), #bulk (selection toolbar), #empty (no-data view).
 // columns: [{ key, label, sortable?, width?, align? }]
 //
@@ -66,21 +70,31 @@ const props = defineProps({
         default: "asc",
     },
     // Localized text — app overrides these; defaults stay English (locale-agnostic).
-    emptyText: { type: String, default: "No data" },
-    clearLabel: { type: String, default: "Clear selection" },
+    emptyText: { type: String, default: undefined },
+    clearLabel: { type: String, default: undefined },
     selectionLabel: {
         type: Function as PropType<(count: number) => string>,
-        default: (count: number) => `${count} selected`,
+        default: undefined,
     },
     rangeLabel: {
         type: Function as PropType<
             (from: number, to: number, total: number) => string
         >,
-        default: (from: number, to: number, total: number) =>
-            `${from}–${to} of ${total}`,
+        default: undefined,
     },
-    selectAllLabel: { type: String, default: "Select all" },
-    selectRowLabel: { type: String, default: "Select row" },
+    selectAllLabel: { type: String, default: undefined },
+    selectRowLabel: { type: String, default: undefined },
+    selectAllMatchingLabel: {
+        type: Function as PropType<(total: number) => string>,
+        default: undefined,
+    },
+    // Rows matching the current filters across all server pages. With
+    // v-model:allMatching it enables "select all N" in the bulk bar.
+    total: { type: Number, default: 0 },
+    allMatching: { type: Boolean, default: false },
+    // Below 640px viewport width render rows as cards; each cell is labeled
+    // with its column heading. The header row stays for screen readers only.
+    stacked: { type: Boolean, default: false },
     // Accessible name for an interactive row (only used when @row-click is bound).
     // Returns the label for `row`; without it role="button" derives the name from
     // the row's cell text, which is usually too verbose — pass this for a clean name.
@@ -99,8 +113,19 @@ const props = defineProps({
         default: null,
     },
 });
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    emptyText: "table.empty",
+    clearLabel: "table.clear",
+    selectionLabel: "table.selection",
+    rangeLabel: "table.range",
+    selectAllLabel: "table.selectAll",
+    selectRowLabel: "table.selectRow",
+    selectAllMatchingLabel: "table.selectAllMatching",
+});
 const emit = defineEmits<{
     "update:selected": [keys: TableValue[]];
+    "update:allMatching": [value: boolean];
     "row-click": [row: Row];
     "sort-change": [sort: SortChange];
 }>();
@@ -188,26 +213,39 @@ const rangeText = computed(() => {
     if (props.pageSize <= 0 || sorted.value.length === 0) return "";
     const p = Math.min(page.value, pages.value);
     const start = (p - 1) * props.pageSize;
-    return props.rangeLabel(
+    return lbl.value.rangeLabel(
         start + 1,
         Math.min(start + props.pageSize, sorted.value.length),
         sorted.value.length,
     );
 });
 
-const allSel = computed(
-    () =>
-        paged.value.length > 0 &&
-        paged.value.every((row) => props.selected.includes(rowId(row))),
-);
-const someSel = computed(() =>
-    paged.value.some((row) => props.selected.includes(rowId(row))),
-);
 function rowId(row: Row): TableValue {
     return row[props.rowKey] as TableValue;
 }
+const isSel = (row: Row): boolean =>
+    props.allMatching || props.selected.includes(rowId(row));
+const allSel = computed(
+    () => paged.value.length > 0 && paged.value.every(isSel),
+);
+const someSel = computed(() => paged.value.some(isSel));
+const selectionCount = computed(() =>
+    props.allMatching ? props.total : props.selected.length,
+);
+const canSelectMatching = computed(
+    () =>
+        !props.allMatching &&
+        allSel.value &&
+        props.total > props.selected.length,
+);
+
+function clearSelection(): void {
+    if (props.allMatching) emit("update:allMatching", false);
+    emit("update:selected", []);
+}
 
 function toggleAll(): void {
+    if (props.allMatching) return clearSelection();
     const ids = paged.value.map(rowId);
     if (allSel.value)
         emit(
@@ -222,6 +260,15 @@ function toggleAll(): void {
 }
 function toggleRow(row: Row): void {
     const id = rowId(row);
+    if (props.allMatching) {
+        // Leaving "all matching": keep the rest of the visible page picked.
+        emit("update:allMatching", false);
+        emit(
+            "update:selected",
+            paged.value.map(rowId).filter((x) => x !== id),
+        );
+        return;
+    }
     if (props.selected.includes(id))
         emit(
             "update:selected",
@@ -229,29 +276,41 @@ function toggleRow(row: Row): void {
         );
     else emit("update:selected", [...props.selected, id]);
 }
-const isSel = (row: Row): boolean => props.selected.includes(rowId(row));
 </script>
 
 <template>
-    <div class="n-table-wrap">
+    <div class="n-table-wrap" :class="{ 'n-table-wrap--stacked': stacked }">
         <!-- bulk bar -->
-        <div v-if="selectable && selected.length" class="n-table__bulk">
+        <div
+            v-if="selectable && (selected.length || allMatching)"
+            class="n-table__bulk"
+        >
             <span class="n-table__bulk-count">{{
-                selectionLabel(selected.length)
+                lbl.selectionLabel(selectionCount)
             }}</span>
+            <button
+                v-if="canSelectMatching"
+                type="button"
+                class="n-table__bulk-all"
+                @click="emit('update:allMatching', true)"
+            >
+                {{ lbl.selectAllMatchingLabel(total) }}
+            </button>
             <span class="n-table__bulk-sep" />
             <slot
                 name="bulk"
                 :selected="selected"
-                :clear="() => emit('update:selected', [])"
+                :all-matching="allMatching"
+                :count="selectionCount"
+                :clear="clearSelection"
             />
             <div class="n-table__bulk-spacer" />
             <button
                 type="button"
                 class="n-table__bulk-clear"
-                @click="emit('update:selected', [])"
+                @click="clearSelection"
             >
-                {{ clearLabel }}
+                {{ lbl.clearLabel }}
             </button>
         </div>
 
@@ -267,7 +326,7 @@ const isSel = (row: Row): boolean => props.selected.includes(rowId(row));
                             <NCheckbox
                                 :model-value="allSel"
                                 :indeterminate="someSel && !allSel"
-                                :aria-label="selectAllLabel"
+                                :aria-label="lbl.selectAllLabel"
                                 @update:model-value="toggleAll"
                             />
                         </th>
@@ -339,13 +398,14 @@ const isSel = (row: Row): boolean => props.selected.includes(rowId(row));
                         >
                             <NCheckbox
                                 :model-value="isSel(row)"
-                                :aria-label="selectRowLabel"
+                                :aria-label="lbl.selectRowLabel"
                                 @update:model-value="toggleRow(row)"
                             />
                         </td>
                         <td
                             v-for="col in columns"
                             :key="col.key"
+                            :data-label="col.label"
                             :style="{ textAlign: col.align || 'left' }"
                         >
                             <slot
@@ -360,7 +420,7 @@ const isSel = (row: Row): boolean => props.selected.includes(rowId(row));
                         <td :colspan="columns.length + (selectable ? 1 : 0)">
                             <slot name="empty"
                                 ><div class="n-table__empty">
-                                    {{ emptyText }}
+                                    {{ lbl.emptyText }}
                                 </div></slot
                             >
                         </td>
@@ -490,7 +550,8 @@ const isSel = (row: Row): boolean => props.selected.includes(rowId(row));
 .n-table__bulk-count {
     font-weight: 700;
     font-size: 13px;
-    color: var(--accent);
+    /* --accent-ink: --accent on --accent-soft misses AA (4.5:1). */
+    color: var(--accent-ink);
 }
 .n-table__bulk-sep {
     width: 1px;
@@ -513,5 +574,84 @@ const isSel = (row: Row): boolean => props.selected.includes(rowId(row));
 }
 .n-table__bulk-clear:hover {
     color: var(--text);
+}
+.n-table__bulk-all {
+    height: 30px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--accent-ink);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 12.5px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.n-table__bulk-all:focus-visible,
+.n-table__bulk-clear:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+/* Stacked (phone) layout: each row becomes a card of label/value lines. Sorting
+   is a desktop feature; the header row is kept for screen readers only. */
+@media (max-width: 640px) {
+    .n-table-wrap--stacked .n-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+    .n-table-wrap--stacked .n-table,
+    .n-table-wrap--stacked .n-table tbody,
+    .n-table-wrap--stacked .n-table tr {
+        display: block;
+        width: 100%;
+    }
+    .n-table-wrap--stacked .n-table tbody tr {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .n-table-wrap--stacked .n-table tbody tr:last-child {
+        border-bottom: 0;
+    }
+    .n-table-wrap--stacked .n-table tbody td {
+        display: grid;
+        grid-template-columns: minmax(84px, 34%) minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        width: auto;
+        height: auto;
+        min-height: 0;
+        padding: 5px 14px;
+        border-bottom: 0;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+    .n-table-wrap--stacked .n-table tbody td::before {
+        content: attr(data-label);
+        color: var(--text-3);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+    .n-table-wrap--stacked .n-table tbody td[data-label=""],
+    .n-table-wrap--stacked .n-table tbody td:not([data-label]) {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: start;
+    }
+    .n-table-wrap--stacked .n-table tbody td[data-label=""]::before,
+    .n-table-wrap--stacked .n-table tbody td:not([data-label])::before {
+        content: none;
+    }
+    .n-table-wrap--stacked .n-table__bulk {
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 50px;
+        padding: 8px 16px;
+    }
 }
 </style>

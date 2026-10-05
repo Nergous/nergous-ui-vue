@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import {
     ref,
     computed,
@@ -7,6 +8,7 @@ import {
     onBeforeUnmount,
     useId,
     watch,
+    useAttrs,
     type ComponentPublicInstance,
     type PropType,
 } from "vue";
@@ -38,17 +40,33 @@ const props = defineProps({
         type: Array as PropType<SelectOption[]>,
         default: () => [],
     },
-    placeholder: { type: String, default: "Select…" },
-    searchPlaceholder: { type: String, default: "Search…" },
-    noResultsText: { type: String, default: "No results" },
+    placeholder: { type: String, default: undefined },
+    searchPlaceholder: { type: String, default: undefined },
+    noResultsText: { type: String, default: undefined },
     error: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    placeholder: "select.placeholder",
+    searchPlaceholder: "select.search",
+    noResultsText: "select.noResults",
 });
 const emit = defineEmits<{
     "update:modelValue": [value: SelectValue];
 }>();
 
 const field = useFormField();
+// Native attributes (aria-label, aria-labelledby, id, listeners, data-*) belong
+// on the combobox button so a standalone select gets an accessible name; only
+// class and style stay on the positioning wrapper.
+defineOptions({ inheritAttrs: false });
+const attrs = useAttrs();
+const rootAttrs = computed(() => ({ class: attrs.class, style: attrs.style }));
+const controlAttrs = computed(() => {
+    const { class: _class, style: _style, ...rest } = attrs;
+    return rest;
+});
 const invalid = computed(() => props.error || !!field?.invalid.value);
 
 const sid = useId();
@@ -69,7 +87,7 @@ const selected = computed(
     () => props.options.find((o) => o.value === props.modelValue) || null,
 );
 const displayLabel = computed(() =>
-    selected.value ? selected.value.label : props.placeholder,
+    selected.value ? selected.value.label : lbl.value.placeholder,
 );
 
 // Client-side filter by a case-insensitive substring of the label.
@@ -256,6 +274,7 @@ watch(
         ref="root"
         class="n-selects"
         :class="{ open, disabled, error: invalid }"
+        v-bind="rootAttrs"
     >
         <button
             ref="triggerEl"
@@ -273,6 +292,7 @@ watch(
             :disabled="disabled"
             @click="toggle"
             @keydown="onTriggerKeydown"
+            v-bind="controlAttrs"
         >
             <span class="n-selects__value">{{ displayLabel }}</span>
             <NIcon name="chevron-down" :size="16" class="n-selects__chev" />
@@ -297,11 +317,11 @@ watch(
                             v-model="query"
                             type="text"
                             class="n-selects__search"
-                            :placeholder="searchPlaceholder"
+                            :placeholder="lbl.searchPlaceholder"
                             role="combobox"
                             aria-expanded="true"
                             aria-autocomplete="list"
-                            :aria-label="searchPlaceholder"
+                            :aria-label="lbl.searchPlaceholder"
                             :aria-activedescendant="
                                 activeIndex >= 0
                                     ? optId(activeIndex)
@@ -317,7 +337,7 @@ watch(
                         :id="listId"
                         class="n-selects__list"
                         role="listbox"
-                        :aria-label="searchPlaceholder"
+                        :aria-label="lbl.searchPlaceholder"
                     >
                         <li
                             v-for="(opt, i) in filtered"
@@ -347,7 +367,7 @@ watch(
                             </span>
                         </li>
                         <li v-if="!filtered.length" class="n-selects__empty">
-                            {{ noResultsText }}
+                            {{ lbl.noResultsText }}
                         </li>
                     </ul>
                 </div>

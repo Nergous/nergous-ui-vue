@@ -191,6 +191,30 @@ Invalid/empty values render as an em dash (`—`). `toDate(value)` uses the nati
 `Date` parser and returns a valid `Date` or `null`; prefer ISO 8601 strings for
 portable parsing. The helper is also exported standalone from the barrel.
 
+`createFormat(locale, { timeZone })` renders dates in a display time zone (for
+example the site's zone instead of the browser's). `formatBytes(1536)` gives
+locale units (`"1.5 kB"`, `"1,5 КБ"`), and `plural(count, forms)` picks a form by
+`Intl.PluralRules`, with `#` standing for the count:
+`plural(5, { one: "# файл", few: "# файла", many: "# файлов", other: "# файла" })`.
+
+## Localization
+
+Every built-in label defaults to English. Set the language once for the app and
+each label resolves as: explicit prop → provided dictionary → English default.
+
+```js
+import { createApp } from "vue";
+import { createLocale, ruMessages } from "nergous-ui-vue";
+
+createApp(App).use(createLocale(ruMessages)).mount("#app");
+```
+
+Pass a partial object to override a few keys (`{ "dialog.close": "Закрыть окно" }`),
+or a ref/getter to switch language at runtime. `provideLocale(messages)` does the
+same for one component subtree, and `useMessages()` reads the effective
+dictionary in your own components. The `Messages` type lists every key; function
+keys such as `"table.selection"` build text from counts.
+
 ## Components
 
 | Component | Purpose | Key props / v-model |
@@ -198,8 +222,9 @@ portable parsing. The helper is also exported standalone from the barrel.
 | `NButton` | Button | `variant` (primary/secondary/ghost/danger), `size` (sm/md/lg), `tone` (''/accent/danger), `icon`, `loading`, `block`, `as` (polymorphic root — e.g. a router-link component or `"a"`) |
 | `NFormField` | Field wrapper: label + control + error/hint | `label`, `error`, `hint`, `required`, `tag` (`label`/`div`), `labelId`; passes an a11y contract to the nested control via `useFormField` (provide/inject — `aria-describedby`/`aria-invalid`/`aria-required`) |
 | `NInput` | Text input | `v-model`, `type`, `icon`, `error`, `placeholder` |
-| `NSelect` | Themed listbox (replaces native `<select>`) | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `error` |
+| `NSelect` | Themed listbox (replaces native `<select>`) | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `error`; `aria-label`/`id` go to the combobox |
 | `NSelectWithSearch` | Searchable single-select listbox; English search/empty defaults | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `searchPlaceholder`, `noResultsText`, `error` |
+| `NMultiSelect` | Checkbox-panel multi-select (list filters) | `v-model` (array, options order), `options`, `label`, `placeholder`, `search`; summary "First +N", highlighted while set |
 | `NTextarea` | Multi-line input | `v-model`, `rows` |
 | `NRichText` | Mini WYSIWYG on `contenteditable` | `v-model` (HTML string), `placeholder`, `error`, `disabled`, `labels` (toolbar captions), `tools` (limit the button set), `preset="full"` (images, tables, alignment, undo/redo, sub/sup, full screen), `pickImage`/`pickLink` (app media pickers). With `NFormField` use `tag="div"` |
 | `NSwitch` | Toggle | `v-model` (Boolean) |
@@ -217,20 +242,29 @@ portable parsing. The helper is also exported standalone from the barrel.
 | `NLightbox` | Fullscreen image viewer | `items: [{url,caption}]`, `v-model:index` (`-1` = closed), `dialogLabel`/`closeLabel`/`prevLabel`/`nextLabel`; focus trap + Escape + arrow keys |
 | `NToaster` | Toast container | — (driven by `useToast`) |
 | `NIcon` | Icon | `name`, `size` |
+| `NConfirmDialog` | Confirmation on top of `NModal` | `v-model` (open), `title`, `message`, `confirmLabel`, `cancelLabel`, `danger`, `loading`; `@confirm`, `@cancel`. Pair with `useConfirm()` |
+| `NPopover` | Button with a non-modal panel | `label`, `icon`, `width`, `align`; default slot `{close}` |
+| `NIconTooltip` | One shared tooltip for icon-only buttons (shows their `aria-label`) | mount once; `delay`, `selector`; `data-no-tip` opts out |
 
 ### Layout and data (admin shell)
 
 | Component | Purpose | Key props / v-model |
 |---|---|---|
 | `NSidebar` | Collapsible sidebar | `v-model` (active id), `groups: [{label,items:[{id,label,icon,badge}]}]`, `collapsed`, `brand`, `#footer` slot |
+| `NBreadcrumbs` | Location trail | `items: [{label,href?}]`, `linkAs` (router link component); last item is `aria-current="page"` |
+| `NToolbar` | List toolbar | slots `#search` (grows), default (filters), `#actions` (far end) |
+| `NFilterChips` | Active filters as removable chips | `filters: [{key,label,value}]`; `@remove(key)`, `@reset` |
+| `NColumnPicker` | Popover to hide optional table columns | `columns`, `v-model:hidden`; pair with `useColumnVisibility()` |
+| `NActionBar` | Sticky form save bar | `dirty`, `idleText`, `dirtyText`, `sticky`; actions in the default slot |
+| `NSortHandle` | Drag/keyboard grip for `useSortable` rows | `label`, `active` |
 | `NTopbar` | Top bar | `title`, `subtitle`, `@toggle` event; slots `#left`, default, `#right` |
 | `NBrand` | Logo lockup: glyph + name | `glyph`, `name`, `sub`, `size` (sm/md/lg), `showSub` (hide text for an icon-only rail) |
 | `NStepper` | Vertical step rail | `v-model` (active step), `steps: [{value,label,sub}]`, `completed` (explicit done-set; default = linear by index), `navLabel` |
 | `NWizard` | Stepped-form shell (create) | `v-model`, `steps`, `completed`, `title` (rail eyebrow), `progress`; scoped default slot `{step,index,count}` for the active panel, `#footer` slot `{index,count,isFirst,isLast,prev,next,goTo}` |
 | `NAnchorNav` | Section table-of-contents | `v-model` (active section), `sections: [{value,label,count}]`, `navLabel` — presentational; pair with `useScrollSpy` or use `NAnchoredForm` |
 | `NAnchoredForm` | Anchored single-page editor shell (edit) | `v-model`, `sections: [{value,label,count}]`, `sectionsLabel`, `height`, `offset`; slots `#section-<value>` (fields, scoped `{section,index}`), `#header`, `#status`, `#savebar`. Owns the scroll container + scroll-spy |
-| `NDataTable` | Data table | `columns`, `rows`, `selectable`, `v-model:selected`, `page-size`; controlled sorting via `sort-key`/`sort-dir` + `manual-sort` (server-side; the header syncs the arrow and `aria-sort`); slots `#cell-<key>`, `#bulk`, `#empty`; events `@row-click`, `@sort-change` |
-| `NPagination` | Pagination | `v-model:page`, `pages`, optional `jumpable` direct page input; localize with `jumpLabel`, `jumpButtonLabel`, `totalLabel`, `jumpErrorLabel`; optional rows-per-page selector via `v-model:page-size` + `page-sizes`, localized with `pageSizeLabel` |
+| `NDataTable` | Data table | `columns`, `rows`, `selectable`, `v-model:selected`, `page-size`; controlled sorting via `sort-key`/`sort-dir` + `manual-sort` (server-side; the header syncs the arrow and `aria-sort`); "select all N" for server lists via `total` + `v-model:all-matching`; `stacked` turns rows into cards below 640px; slots `#cell-<key>`, `#bulk`, `#empty`; events `@row-click`, `@sort-change` |
+| `NPagination` | Pagination | `v-model:page`, `pages`, optional `jumpable` direct page input; optional rows-per-page selector via `v-model:page-size` + `page-sizes`; `hide-on-single-page` (+ `total`) hides it while the list fits one page |
 | `NStatCard` | KPI card | `label`, `value`, `delta`, `trend` (up/down), `spark: number[]`, `icon` |
 | `NActivityRow` | Activity-feed row | `tone` (ok/info/danger/warn/accent), `icon`, `actor`, `verb`, `object`, `tag`, `time`, `meta`. Presentational — the localized verb/tag is passed in by the host |
 | `NDropzone` | Drag-and-drop upload | `accept`, `multiple`, `hint`; `@files` event |
@@ -252,6 +286,15 @@ both behind an `NSegmented` switch. The `useScrollSpy(containerRef, { offset })`
 composable — which powers `NAnchoredForm` — is also exported for anchored pages
 you wire yourself; it returns `{ active, scrollTo }` and keys off `data-spy`
 attributes on the scroll container's children.
+Pass `{ scroller: "ancestor" }` when the page (or the nearest scrolling ancestor)
+scrolls instead, so a long form keeps normal page flow.
+
+**Lists.** `NToolbar` + `NMultiSelect` + `NFilterChips` + `NDataTable` +
+`NPagination` cover a filtered server list; `useColumnVisibility` with
+`NColumnPicker` lets users hide columns, and `useSortable` with `NSortHandle` adds
+drag and keyboard reordering. `useHotkeys` registers layout-independent
+shortcuts, and `installEnterSubmit()` lets Enter press the
+`[data-enter-submit]` button of the current form or dialog.
 
 ## Example
 

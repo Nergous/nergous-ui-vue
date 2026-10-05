@@ -27,7 +27,8 @@
         "composables/**/*.js",
         "composables/**/*.ts",
         "utils/**/*.js",
-        "utils/**/*.ts"
+        "utils/**/*.ts",
+        "locales/**/*.ts"
     ],
     "exclude": [
         "node_modules",

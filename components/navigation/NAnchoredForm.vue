@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import { ref, watch, type PropType } from "vue";
 import NAnchorNav from "./NAnchorNav.vue";
 import { useScrollSpy } from "../../composables/useScrollSpy.ts";
@@ -43,7 +44,11 @@ const props = defineProps({
     // Distance from the top of the viewport at which a section becomes active.
     offset: { type: Number, default: 16 },
     // Accessible name for the rail <nav> (forwarded to NAnchorNav).
-    navLabel: { type: String, default: "Sections" },
+    navLabel: { type: String, default: undefined },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    navLabel: "nav.sections",
 });
 const emit = defineEmits<{
     "update:modelValue": [value: SectionValue];
@@ -82,7 +87,7 @@ function onPick(value: SectionValue): void {
                 <NAnchorNav
                     :model-value="modelValue"
                     :sections="sections"
-                    :nav-label="navLabel"
+                    :nav-label="lbl.navLabel"
                     @update:model-value="onPick"
                 />
                 <span class="n-aform__spacer" />

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import { computed, ref, useId, watch, type PropType } from "vue";
 import NButton from "../forms/NButton.vue";
 import NSelect from "../forms/NSelect.vue";
@@ -13,19 +14,37 @@ import { provideFormField } from "../../composables/useFormField.ts";
 const props = defineProps({
     page: { type: Number, default: 1 },
     pages: { type: Number, default: 1 },
-    prevLabel: { type: String, default: "Previous page" },
-    nextLabel: { type: String, default: "Next page" },
+    prevLabel: { type: String, default: undefined },
+    nextLabel: { type: String, default: undefined },
     jumpable: { type: Boolean, default: false },
-    jumpLabel: { type: String, default: "Page" },
-    jumpButtonLabel: { type: String, default: "Go" },
-    totalLabel: { type: String, default: "of" },
-    jumpErrorLabel: { type: String, default: "Enter a valid page number" },
+    jumpLabel: { type: String, default: undefined },
+    jumpButtonLabel: { type: String, default: undefined },
+    totalLabel: { type: String, default: undefined },
+    jumpErrorLabel: { type: String, default: undefined },
     pageSize: { type: Number, default: 0 },
     pageSizes: {
         type: Array as PropType<number[]>,
         default: () => [],
     },
-    pageSizeLabel: { type: String, default: "Rows per page" },
+    pageSizeLabel: { type: String, default: undefined },
+    // Accessible name of the <nav> landmark; an aria-label attribute still wins.
+    navLabel: { type: String, default: undefined },
+    // Render nothing while there is a single page. With pageSizes, the pager stays
+    // while `total` exceeds the smallest size, so a larger size can be undone.
+    hideOnSinglePage: { type: Boolean, default: false },
+    // Total item count; only used by hideOnSinglePage together with pageSizes.
+    total: { type: Number, default: 0 },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    prevLabel: "pagination.prev",
+    nextLabel: "pagination.next",
+    jumpLabel: "pagination.jump",
+    jumpButtonLabel: "pagination.jumpButton",
+    totalLabel: "pagination.of",
+    jumpErrorLabel: "pagination.jumpError",
+    pageSizeLabel: "pagination.pageSize",
+    navLabel: "pagination.label",
 });
 const emit = defineEmits<{
     "update:page": [page: number];
@@ -42,6 +61,12 @@ const currentPage = computed(() =>
 const jumpInputId = `n-pg-jump-${useId()}`;
 const jumpErrorId = `${jumpInputId}-error`;
 const sizeLabelId = `n-pg-size-${useId()}`;
+
+const visible = computed(() => {
+    if (!props.hideOnSinglePage || totalPages.value > 1) return true;
+    const sizes = props.pageSizes.filter((s) => Number.isInteger(s) && s > 0);
+    return sizes.length > 0 && props.total > Math.min(...sizes);
+});
 
 // Positive whole sizes, deduplicated and sorted; the current size is kept
 // selectable even when the consumer omits it from pageSizes.
@@ -130,10 +155,10 @@ const items = computed<Array<number | string>>(() => {
 </script>
 
 <template>
-    <nav class="n-pg">
+    <nav v-if="visible" class="n-pg" :aria-label="lbl.navLabel">
         <div v-if="sizeOptions.length" class="n-pg__size">
             <span :id="sizeLabelId" class="n-pg__jump-label">
-                {{ pageSizeLabel }}
+                {{ lbl.pageSizeLabel }}
             </span>
             <NSelect
                 class="n-pg__size-select"
@@ -148,7 +173,7 @@ const items = computed<Array<number | string>>(() => {
                 type="button"
                 class="n-pg__nav"
                 :disabled="currentPage <= 1"
-                :aria-label="prevLabel"
+                :aria-label="lbl.prevLabel"
                 @click="go(currentPage - 1)"
             >
                 <NIcon name="chevron-left" :size="15" />
@@ -172,7 +197,7 @@ const items = computed<Array<number | string>>(() => {
                 type="button"
                 class="n-pg__nav"
                 :disabled="currentPage >= totalPages"
-                :aria-label="nextLabel"
+                :aria-label="lbl.nextLabel"
                 @click="go(currentPage + 1)"
             >
                 <NIcon name="chevron-right" :size="15" />
@@ -184,7 +209,7 @@ const items = computed<Array<number | string>>(() => {
             class="n-pg__jump"
         >
             <label :for="jumpInputId" class="n-pg__jump-label">
-                {{ jumpLabel }}
+                {{ lbl.jumpLabel }}
             </label>
             <input
                 :id="jumpInputId"
@@ -200,7 +225,7 @@ const items = computed<Array<number | string>>(() => {
                 @keydown.enter.prevent="jumpToPage"
             />
             <span class="n-pg__jump-total" aria-hidden="true">
-                {{ totalLabel }} {{ totalPages }}
+                {{ lbl.totalLabel }} {{ totalPages }}
             </span>
             <NButton
                 type="button"
@@ -208,7 +233,7 @@ const items = computed<Array<number | string>>(() => {
                 :disabled="!canJump"
                 @click="jumpToPage"
             >
-                {{ jumpButtonLabel }}
+                {{ lbl.jumpButtonLabel }}
             </NButton>
             <span
                 v-if="targetInvalid"
@@ -216,7 +241,7 @@ const items = computed<Array<number | string>>(() => {
                 class="n-pg__jump-error"
                 role="alert"
             >
-                {{ jumpErrorLabel }}
+                {{ lbl.jumpErrorLabel }}
             </span>
         </div>
     </nav>

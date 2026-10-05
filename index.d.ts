@@ -8,6 +8,8 @@ import type {
     VNodeProps,
     AllowedComponentProps,
     Ref,
+    ComputedRef,
+    Plugin,
 } from "vue";
 
 /** Value accepted by selection controls and navigation components. */
@@ -199,6 +201,8 @@ export declare const NButton: UIComponent<{
     type?: "button" | "submit" | "reset";
     /** Root element name or compatible Vue component. @defaultValue "button" */
     as?: string | Component;
+    /** Counter badge; "", null and 0 hide it. Icon-only buttons show it in the corner; include the count in aria-label. */
+    badge?: string | number | null;
 }>;
 /** Label, validation message, and hint wrapper for form controls. */
 export declare const NFormField: UIComponent<{
@@ -362,7 +366,7 @@ export declare const NRichText: UIComponent<
         },
     Update<string>
 >;
-/** Themeable single-select listbox. */
+/** Themeable single-select listbox. Attributes other than class/style (aria-label, id, listeners) go to the combobox button. */
 export declare const NSelect: UIComponent<
     Model &
         Field & {
@@ -371,7 +375,7 @@ export declare const NSelect: UIComponent<
         },
     Update
 >;
-/** Themeable single-select listbox with client-side search. */
+/** Themeable single-select listbox with client-side search. Attributes other than class/style go to the combobox button. */
 export declare const NSelectWithSearch: UIComponent<
     Model &
         Field & {
@@ -558,6 +562,12 @@ export declare const NPagination: UIComponent<
         pageSizes?: number[];
         /** Visible label for the page-size selector. @defaultValue "Rows per page" */
         pageSizeLabel?: string;
+        /** Accessible name of the nav landmark. @defaultValue "Pagination" */
+        navLabel?: string;
+        /** Render nothing on a single page; with pageSizes it stays while total exceeds the smallest size. @defaultValue false */
+        hideOnSinglePage?: boolean;
+        /** Total item count used by hideOnSinglePage together with pageSizes. @defaultValue 0 */
+        total?: number;
     },
     {
         /** Updated one-based page. */
@@ -601,6 +611,14 @@ export declare const NDataTable: UIComponent<
         selectAllLabel?: string;
         /** Accessible label for row checkboxes. */
         selectRowLabel?: string;
+        /** Build the "select all matching" button text. */
+        selectAllMatchingLabel?: (total: number) => string;
+        /** Rows matching the filters across all server pages; enables "select all matching". @defaultValue 0 */
+        total?: number;
+        /** Controlled "all matching rows selected" state (v-model:allMatching). @defaultValue false */
+        allMatching?: boolean;
+        /** Render rows as label/value cards below 640px viewport width. @defaultValue false */
+        stacked?: boolean;
         /** Build an accessible name for an interactive row. */
         rowLabel?: ((row: Row) => string) | null;
         /** Add class bindings to each row. */
@@ -610,6 +628,8 @@ export declare const NDataTable: UIComponent<
     {
         /** Updated selected row keys. */
         "update:selected": [keys: Value[]];
+        /** Updated "all matching rows selected" state. */
+        "update:allMatching": [value: boolean];
         /** Activated row. */
         "row-click": [row: Row];
         /** Requested sort state. */
@@ -625,6 +645,10 @@ export declare const NDataTable: UIComponent<
         bulk?: (props: {
             /** Selected row keys. */
             selected: Value[];
+            /** Whether every matching row is selected. */
+            allMatching: boolean;
+            /** Selected row count (total when all matching rows are selected). */
+            count: number;
             /** Clear current selection. */
             clear: () => void;
         }) => VNode[];
@@ -815,8 +839,8 @@ export declare const NSidebar: UIComponent<
             /** Short glyph text. */
             glyph?: string;
         };
-        /** Component used to render items with href. */
-        linkAs?: Component;
+        /** Element name or component used to render items with href. @defaultValue "a" */
+        linkAs?: string | Component;
         /** Accessible navigation landmark label. */
         navLabel?: string;
     },
@@ -971,6 +995,192 @@ export declare const NAnchoredForm: UIComponent<
     }
 >;
 
+/** Filter chip shown by NFilterChips. */
+export interface FilterChip {
+    /** Unique chip key emitted by remove. */
+    key: string;
+    /** Filter name. */
+    label: string;
+    /** Readable filter value. */
+    value: string;
+}
+/** Breadcrumb trail item. */
+export interface Crumb {
+    /** Visible text. */
+    label: string;
+    /** Destination; omitted for plain text. The last item is never a link. */
+    href?: string;
+}
+/** Multi-select with a checkbox panel; v-model is an array kept in options order. */
+export declare const NMultiSelect: UIComponent<
+    Model<Value[]> &
+        Field & {
+            /** Selectable options. */
+            options?: Option[];
+            /** Accessible filter name when not inside NFormField. */
+            label?: string;
+            /** Show a search field in the panel. @defaultValue false */
+            search?: boolean;
+            /** Search field placeholder and accessible name. */
+            searchPlaceholder?: string;
+            /** Text shown when the search has no matches. */
+            noResultsText?: string;
+            /** Build the selected-count text. */
+            selectedLabel?: (count: number) => string;
+            /** Clear-action label. */
+            clearLabel?: string;
+        },
+    Update<Value[]>
+>;
+/** Sticky form save bar with an unsaved-changes state and an actions slot. */
+export declare const NActionBar: UIComponent<
+    {
+        /** The form has unsaved changes. @defaultValue false */
+        dirty?: boolean;
+        /** State text without changes. */
+        idleText?: string;
+        /** State text with unsaved changes. */
+        dirtyText?: string;
+        /** Stick to the bottom of the scroll area. @defaultValue true */
+        sticky?: boolean;
+    },
+    {},
+    DefaultSlots & {
+        /** Replaces the state text. */
+        status?: (props: {
+            /** Current dirty state. */
+            dirty: boolean;
+        }) => VNode[];
+    }
+>;
+/** Drag/keyboard grip button for useSortable rows. */
+export declare const NSortHandle: UIComponent<{
+    /** Accessible name, e.g. "Move “News”"; the keyboard hint is appended. */
+    label: string;
+    /** The row is being dragged. @defaultValue false */
+    active?: boolean;
+    /** Keyboard hint appended to the label. */
+    hint?: string;
+}>;
+/** Removable chips of the active list filters with a reset-all action. */
+export declare const NFilterChips: UIComponent<
+    {
+        /** Active filters; render nothing when empty. */
+        filters?: FilterChip[];
+        /** Accessible group label. */
+        groupLabel?: string;
+        /** Reset-all button text. */
+        resetLabel?: string;
+        /** Build a remove-button accessible name. */
+        removeLabel?: (label: string, value: string) => string;
+    },
+    {
+        /** Remove one filter by chip key. */
+        remove: [key: string];
+        /** Reset all filters. */
+        reset: [];
+    }
+>;
+/** Popover with a checkbox per optional table column; v-model:hidden holds hidden keys. */
+export declare const NColumnPicker: UIComponent<
+    {
+        /** Optional columns offered in the picker. */
+        columns?: Column[];
+        /** Hidden column keys. */
+        hidden?: string[];
+        /** Button text. */
+        label?: string;
+        /** Disable the picker. @defaultValue false */
+        disabled?: boolean;
+    },
+    {
+        /** Updated hidden column keys. */
+        "update:hidden": [keys: string[]];
+    }
+>;
+/** Shared tooltip for icon-only buttons and links, using their aria-label. Mount once. */
+export declare const NIconTooltip: UIComponent<{
+    /** Hover delay in milliseconds. @defaultValue 400 */
+    delay?: number;
+    /** Selector of elements that may get the tooltip. */
+    selector?: string;
+}>;
+/** Button that opens a non-modal panel; the default slot receives close. */
+export declare const NPopover: UIComponent<
+    {
+        /** Button text. */
+        label?: string;
+        /** Leading NIcon name. */
+        icon?: string;
+        /** Disable the button. @defaultValue false */
+        disabled?: boolean;
+        /** Minimum panel width (CSS length). */
+        width?: string;
+        /** Panel alignment to the button. @defaultValue "right" */
+        align?: "left" | "right";
+    },
+    {
+        /** Panel opened or closed. */
+        "update:open": [open: boolean];
+    },
+    {
+        /** Panel content. */
+        default?: (props: {
+            /** Close the panel; pass true to return focus to the button. */
+            close: (returnFocus?: boolean) => void;
+        }) => VNode[];
+        /** Custom button content instead of label. */
+        label?: () => VNode[];
+    }
+>;
+/** Confirmation dialog built on NModal. */
+export declare const NConfirmDialog: UIComponent<
+    Model<boolean> & {
+        /** Dialog title. */
+        title?: string;
+        /** Message text. */
+        message?: string;
+        /** Confirm-button text. */
+        confirmLabel?: string;
+        /** Cancel-button text. */
+        cancelLabel?: string;
+        /** Accessible close-button label. */
+        closeLabel?: string;
+        /** Destructive styling for the confirm button. @defaultValue false */
+        danger?: boolean;
+        /** Show a spinner on the confirm button. @defaultValue false */
+        loading?: boolean;
+        /** CSS width of the dialog. @defaultValue "420px" */
+        width?: string;
+    },
+    Update<boolean> & {
+        /** Confirm button activated. */
+        confirm: [];
+        /** Dialog dismissed without confirming. */
+        cancel: [];
+    }
+>;
+/** List toolbar with search, filter, and actions slots. */
+export declare const NToolbar: UIComponent<
+    {},
+    {},
+    DefaultSlots & {
+        /** Search field that takes the free space. */
+        search?: () => VNode[];
+        /** Actions aligned to the far end. */
+        actions?: () => VNode[];
+    }
+>;
+/** Breadcrumb trail; the last item is the current page. */
+export declare const NBreadcrumbs: UIComponent<{
+    /** Trail items from the root to the current page. */
+    items?: Crumb[];
+    /** Element name or router link component for items with href. @defaultValue "a" */
+    linkAs?: string | Component;
+    /** Accessible navigation landmark label. */
+    navLabel?: string;
+}>;
+
 /** localStorage key used for persisted theme. */
 export declare const THEME_STORAGE_KEY: "nergous-ui-vue-theme";
 /** localStorage key used for persisted density. */
@@ -1048,6 +1258,8 @@ export declare function useToast(): ToastControls;
 export interface ScrollSpyOptions {
     /** Pixel offset or getter evaluated for each operation. @defaultValue 16 */
     offset?: number | (() => number);
+    /** Scrolling element: the container itself or its nearest scrolling ancestor (page flow). @defaultValue "self" */
+    scroller?: "self" | "ancestor";
 }
 /** Scroll-spy state and controls. */
 export interface ScrollSpyControls {
@@ -1090,10 +1302,284 @@ export interface Formatters {
     formatRelative(value: DateInput): string;
     /** Format a finite number. @returns Localized text or an em dash. */
     formatNumber(value: string | number | null | undefined): string;
+    /** Format a byte count with 1024-based locale units. @returns Localized size or an em dash. */
+    formatBytes(value: string | number | null | undefined): string;
+    /** Pick a plural form by Intl.PluralRules; "#" inserts the formatted count. @returns The matching text. */
+    plural(count: number, forms: PluralForms): string;
+}
+/** Plural-category texts; other is required. */
+export type PluralForms = Partial<Record<Intl.LDMLPluralRule, string>> & {
+    /** Fallback form. */
+    other: string;
+};
+/** Options of createFormat. */
+export interface FormatOptions {
+    /** IANA time zone for dates; invalid or omitted uses the host zone. */
+    timeZone?: string;
 }
 /**
  * Create locale-bound Intl formatters.
  * @param locale - BCP 47 locale identifier or preference list.
- * @returns Cached date, relative-time, and number formatters.
+ * @param options - Optional display time zone.
+ * @returns Cached date, relative-time, number, byte-size, and plural formatters.
  */
-export declare function createFormat(locale?: string | string[]): Formatters;
+export declare function createFormat(
+    locale?: string | string[],
+    options?: FormatOptions,
+): Formatters;
+/** Every localizable component string; function entries build text from values. */
+export interface Messages {
+    /** Select placeholder. */
+    "select.placeholder": string;
+    /** Select search placeholder. */
+    "select.search": string;
+    /** Select text without matches. */
+    "select.noResults": string;
+    /** Show-password button. */
+    "input.reveal": string;
+    /** Hide-password button. */
+    "input.hide": string;
+    /** Dropzone instruction. */
+    "dropzone.title": string;
+    /** Dropzone separator. */
+    "dropzone.or": string;
+    /** Dropzone browse action. */
+    "dropzone.browse": string;
+    /** Untitled modal name. */
+    "dialog.label": string;
+    /** Dialog close button. */
+    "dialog.close": string;
+    /** Untitled drawer name. */
+    "drawer.label": string;
+    /** Lightbox dialog name. */
+    "lightbox.label": string;
+    /** Lightbox previous button. */
+    "lightbox.prev": string;
+    /** Lightbox next button. */
+    "lightbox.next": string;
+    /** Command palette placeholder. */
+    "command.placeholder": string;
+    /** Command palette without matches. */
+    "command.empty": string;
+    /** Command palette navigation hint. */
+    "command.navigate": string;
+    /** Command palette selection hint. */
+    "command.select": string;
+    /** Toast region name. */
+    "toaster.region": string;
+    /** Toast dismiss button. */
+    "toaster.dismiss": string;
+    /** Sidebar landmark name. */
+    "nav.main": string;
+    /** Stepper and wizard landmark name. */
+    "nav.steps": string;
+    /** Anchor navigation landmark name. */
+    "nav.sections": string;
+    /** Navigation toggle button. */
+    "topbar.toggle": string;
+    /** Empty-state heading. */
+    "empty.title": string;
+    /** Pagination landmark name. */
+    "pagination.label": string;
+    /** Previous-page button. */
+    "pagination.prev": string;
+    /** Next-page button. */
+    "pagination.next": string;
+    /** Page-number field label. */
+    "pagination.jump": string;
+    /** Page-jump button. */
+    "pagination.jumpButton": string;
+    /** Text before the page total. */
+    "pagination.of": string;
+    /** Invalid page-number message. */
+    "pagination.jumpError": string;
+    /** Page-size selector label. */
+    "pagination.pageSize": string;
+    /** Table without rows. */
+    "table.empty": string;
+    /** Clear-selection button. */
+    "table.clear": string;
+    /** Selected-row count text. */
+    "table.selection": (count: number) => string;
+    /** Visible-range text. */
+    "table.range": (from: number, to: number, total: number) => string;
+    /** Select-all checkbox. */
+    "table.selectAll": string;
+    /** Row checkbox. */
+    "table.selectRow": string;
+    /** Select-all-matching button. */
+    "table.selectAllMatching": (total: number) => string;
+    /** Column picker button. */
+    "table.columns": string;
+    /** Multi-select search placeholder. */
+    "multiSelect.search": string;
+    /** Multi-select without matches. */
+    "multiSelect.noResults": string;
+    /** Multi-select count text. */
+    "multiSelect.selected": (count: number) => string;
+    /** Multi-select clear action. */
+    "multiSelect.clear": string;
+    /** Filter chips group name. */
+    "filters.label": string;
+    /** Reset-all filters button. */
+    "filters.reset": string;
+    /** Remove-filter button name. */
+    "filters.remove": (label: string, value: string) => string;
+    /** Save bar text without changes. */
+    "actionBar.idle": string;
+    /** Save bar text with unsaved changes. */
+    "actionBar.dirty": string;
+    /** Confirmation title. */
+    "confirm.title": string;
+    /** Confirm button. */
+    "confirm.confirm": string;
+    /** Cancel button. */
+    "confirm.cancel": string;
+    /** Sort handle keyboard hint. */
+    "sort.hint": string;
+    /** Sort position announcement. */
+    "sort.position": (label: string, position: number, total: number) => string;
+    /** Breadcrumb landmark name. */
+    "breadcrumbs.label": string;
+    /** NRichText labels, merged under the labels prop. */
+    richText: RichTextLabels;
+}
+/** Partial dictionary accepted by locale providers; missing keys use English. */
+export type MessagesInput = Partial<Messages>;
+/** Built-in English dictionary (the component defaults). */
+export declare const enMessages: Messages;
+/** Built-in Russian dictionary. */
+export declare const ruMessages: Messages;
+/**
+ * Provide a dictionary to the calling component's subtree; merges over an outer provider. Call during setup.
+ * @param messages - Dictionary, ref, or getter; reactive sources switch language live.
+ */
+export declare function provideLocale(
+    messages: MessagesInput | Ref<MessagesInput> | (() => MessagesInput),
+): void;
+/**
+ * Create an app plugin providing a dictionary to the whole app: app.use(createLocale(ruMessages)).
+ * Labels resolve as prop, then dictionary, then English default.
+ * @param messages - Dictionary, ref, or getter.
+ * @returns A Vue plugin.
+ */
+export declare function createLocale(
+    messages: MessagesInput | Ref<MessagesInput> | (() => MessagesInput),
+): Plugin;
+/**
+ * Read the effective dictionary (provided keys over English). Call during setup.
+ * @returns A computed dictionary with every key present.
+ */
+export declare function useMessages(): ComputedRef<Messages>;
+/** Reactive confirmation state returned by useConfirm. */
+export interface ConfirmState<T> {
+    /** Dialog open state; bind to NConfirmDialog v-model. */
+    open: boolean;
+    /** Payload being confirmed. */
+    payload: T | null;
+    /** Action in progress; bind to NConfirmDialog loading. */
+    loading: boolean;
+    /** Open the dialog for a payload. @returns Nothing. */
+    ask(payload?: T | null): void;
+    /** Close the dialog and reset loading. @returns Nothing. */
+    close(): void;
+    /** Run the action with loading on; close on success, rethrow on failure. @returns A promise of completion. */
+    run(action: (payload: T | null) => unknown): Promise<void>;
+}
+/**
+ * Create confirmation state for NConfirmDialog.
+ * @returns Reactive open, payload, and loading state with controls.
+ */
+export declare function useConfirm<T = unknown>(): ConfirmState<T>;
+/** Options of useSortable. */
+export interface SortableOptions {
+    /** Delay before commit after keyboard moves; 0 commits at once. @defaultValue 400 */
+    commitDelay?: number;
+    /** Announcement text; defaults to the locale's sort.position. */
+    positionLabel?: (label: string, position: number, total: number) => string;
+}
+/** Item shape accepted by useSortable. */
+export interface SortableItem {
+    /** Stable id; rows carry it as data-sort-id. */
+    id: Value;
+}
+/** Drag-to-reorder state and handlers returned by useSortable. */
+export interface SortableControls<T extends SortableItem> {
+    /** Items in the local order; render rows from it. */
+    items: Ref<T[]>;
+    /** Bind to the positioned list element whose direct children carry data-sort-id. */
+    list: Ref<HTMLElement | null>;
+    /** Id of the row being dragged. */
+    draggingId: Ref<T["id"] | null>;
+    /** Position announcement for a polite live region. */
+    announcement: Ref<string>;
+    /** Start dragging from a handle's pointerdown. @returns Nothing. */
+    startDrag(event: PointerEvent, id: T["id"]): void;
+    /** Move a row with the arrow keys from its handle. @returns Nothing. */
+    onHandleKeydown(event: KeyboardEvent, id: T["id"]): void;
+    /** Move a row by delta (-1 up, 1 down). @returns A promise that settles after the move. */
+    move(id: T["id"], delta: number): Promise<void>;
+}
+/**
+ * Drag, keyboard, and button reordering with FLIP animation. Call during setup.
+ * @param source - Getter of the source order.
+ * @param commit - Receives the ids in their new order.
+ * @param label - Item name used in announcements.
+ * @param options - Commit delay and announcement text.
+ * @returns Local items, list ref, and handlers.
+ */
+export declare function useSortable<T extends SortableItem>(
+    source: () => T[],
+    commit: (ids: T["id"][]) => void,
+    label: (item: T) => string,
+    options?: SortableOptions,
+): SortableControls<T>;
+/** Shortcut map: combo string (e.g. "mod+s", "/", "mod+shift+p") to handler. */
+export type HotkeyMap = Record<string, (event: KeyboardEvent) => void>;
+/** Options of useHotkeys. */
+export interface HotkeyOptions {
+    /** Fire plain keys while typing in fields; mod combos always fire. @defaultValue false */
+    inInputs?: boolean;
+}
+/**
+ * Register window shortcuts while the calling component is mounted. Letters and digits
+ * match physical keys, so shortcuts work under non-Latin layouts.
+ * @param map - Combos and handlers.
+ * @param options - Text-field behaviour.
+ */
+export declare function useHotkeys(map: HotkeyMap, options?: HotkeyOptions): void;
+/** Hideable-column state returned by useColumnVisibility. */
+export interface ColumnVisibility<C extends Column> {
+    /** Visible columns in display order; pass to NDataTable. */
+    columns: ComputedRef<C[]>;
+    /** Optional columns; pass to NColumnPicker. */
+    columnChoices: ComputedRef<C[]>;
+    /** Hidden column keys; bind to NColumnPicker v-model:hidden. */
+    hiddenColumns: Ref<string[]>;
+}
+/**
+ * Optional table columns the user can hide, remembered in localStorage.
+ * @param allColumns - All columns (array, ref, or getter).
+ * @param optional - Keys the user may hide.
+ * @param storageKey - localStorage key; empty keeps the choice in memory.
+ * @returns Visible columns, picker choices, and hidden keys.
+ */
+export declare function useColumnVisibility<C extends Column>(
+    allColumns: C[] | Ref<C[]> | (() => C[]),
+    optional: string[],
+    storageKey?: string,
+): ColumnVisibility<C>;
+/** Options of installEnterSubmit. */
+export interface EnterSubmitOptions {
+    /** Extra selector that stops the search for a submit button (e.g. the main area). */
+    boundary?: string;
+    /** Submit-button selector. @defaultValue "[data-enter-submit]" */
+    submit?: string;
+}
+/**
+ * Make Enter in a text field click the nearest [data-enter-submit] button
+ * (Ctrl/⌘+Enter in multiline fields). A second call replaces the first.
+ * @param options - Boundary and submit selectors.
+ * @returns A function removing the listeners.
+ */
+export declare function installEnterSubmit(options?: EnterSubmitOptions): () => void;

@@ -3,6 +3,36 @@
 All notable changes to the nergous-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
+## v1.1.0 - 2026-10-05
+
+### Added
+
+- Locale provider: `createLocale`, `provideLocale`, `useMessages`, the
+  `Messages` type and built-in `enMessages`/`ruMessages`. Labels resolve as
+  prop → dictionary → English default, across all components.
+- Components extracted from a production admin: `NMultiSelect`, `NPopover`,
+  `NFilterChips`, `NActionBar`, `NConfirmDialog`, `NSortHandle`, `NToolbar`,
+  `NBreadcrumbs`, `NColumnPicker`, `NIconTooltip`.
+- Composables: `useConfirm`, `useSortable` (drag, keyboard and FLIP
+  reordering with announcements), `useHotkeys` (layout-independent),
+  `useColumnVisibility`, `installEnterSubmit`.
+- `NDataTable`: "select all N" for server lists (`total`,
+  `v-model:allMatching`) and a `stacked` card layout on phones.
+- `NPagination`: `hideOnSinglePage` with `total`, and `navLabel`.
+- `NButton`: `badge` counter.
+- `useScrollSpy`: `scroller: "ancestor"` for page-flow forms.
+- `createFormat`: `timeZone` option, `formatBytes` and `plural`
+  (`Intl.PluralRules`).
+- `columns` icon.
+
+### Fixed
+
+- `NSelect`/`NSelectWithSearch` put `aria-label` and other attributes on the
+  wrapper instead of the combobox, leaving standalone selects unnamed.
+- `NSidebar` rendered nothing for href items without `linkAs`.
+- Contrast (WCAG AA): light `--text-3`, sidebar badge, table selection count and
+  disabled checkbox labels.
+
 ## v1.0.7 - 2026-10-05
 
 ### Added

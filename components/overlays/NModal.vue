@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import { ref, useId } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import { useFocusTrap } from "../../composables/useFocusTrap.ts";
@@ -12,9 +13,14 @@ import { useInert } from "../../composables/useInert.ts";
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
     title: { type: String, default: "" },
-    dialogLabel: { type: String, default: "Dialog" },
+    dialogLabel: { type: String, default: undefined },
     width: { type: String, default: "460px" },
-    closeLabel: { type: String, default: "Close" },
+    closeLabel: { type: String, default: undefined },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    dialogLabel: "dialog.label",
+    closeLabel: "dialog.close",
 });
 const emit = defineEmits(["update:modelValue", "close"]);
 function close() {
@@ -50,7 +56,7 @@ useDismiss(() => props.modelValue, close);
                     role="dialog"
                     aria-modal="true"
                     :aria-labelledby="title ? titleId : undefined"
-                    :aria-label="title ? undefined : dialogLabel"
+                    :aria-label="title ? undefined : lbl.dialogLabel"
                     :style="{ width: 'min(' + width + ', 94vw)' }"
                 >
                     <div class="n-modal__head">
@@ -58,7 +64,7 @@ useDismiss(() => props.modelValue, close);
                         <button
                             type="button"
                             class="n-modal__x"
-                            :aria-label="closeLabel"
+                            :aria-label="lbl.closeLabel"
                             @click="close"
                         >
                             <NIcon name="x" :size="18" />

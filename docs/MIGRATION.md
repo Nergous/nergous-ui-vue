@@ -34,6 +34,22 @@ Choose an explicitly published version or an approved local archive.
 - NDropzone filters types and single-file count in both picking and dropping paths.
 - Titleless windows support a meaningful dialogLabel; existing titles are unchanged.
 
+## Upgrading to 1.1
+
+- Label props now default to `undefined` and resolve through the locale
+  provider; rendered English text is unchanged without a provider. Replace
+  per-page label props with one `app.use(createLocale(...))` where convenient.
+- NSelect and NSelectWithSearch forward attributes other than class/style to
+  the combobox button. Tests or CSS that targeted `.n-select[data-…]` or
+  `.n-selects[id]` must target the button.
+- NSidebar renders items with href as `<a>` when `linkAs` is omitted (the old
+  default rendered nothing).
+- Light `--text-3` is #646b79 and `--accent`-on-`--accent-soft` texts use
+  `--accent-ink` (AA). Remove app-side overrides that patched these values.
+- A disabled NCheckbox fades only its box; the label uses `--text-3`.
+- NPagination now names its nav landmark ("Pagination"); an aria-label attribute
+  still wins.
+
 Keep application navigation, API calls and routes in the consuming application.
 The package supplies presentational Vue components and shared UI state only. Do
 not add a second copy of Vue or duplicate the library's singleton state.

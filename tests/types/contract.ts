@@ -10,6 +10,18 @@ import {
     useTheme,
     useToast,
     createFormat,
+    NMultiSelect,
+    NConfirmDialog,
+    NFilterChips,
+    NBreadcrumbs,
+    createLocale,
+    ruMessages,
+    useConfirm,
+    useSortable,
+    useHotkeys,
+    useColumnVisibility,
+    installEnterSubmit,
+    type MessagesInput,
 } from "nergous-ui-vue";
 const button: InstanceType<typeof NButton>["$props"] = {
     variant: "primary",
@@ -86,3 +98,67 @@ void badOptions;
 void badButton;
 void badPagination;
 void badEditor;
+
+const multi: InstanceType<typeof NMultiSelect>["$props"] = {
+    modelValue: ["a", 2],
+    options: [{ value: "a", label: "A" }],
+    search: true,
+    selectedLabel: (n) => n + " picked",
+    "onUpdate:modelValue": (values) => values.length,
+};
+const confirmProps: InstanceType<typeof NConfirmDialog>["$props"] = {
+    modelValue: true,
+    danger: true,
+    onConfirm: () => {},
+    onCancel: () => {},
+};
+const chips: InstanceType<typeof NFilterChips>["$props"] = {
+    filters: [{ key: "type", label: "Type", value: "Article" }],
+    onRemove: (key) => key.toUpperCase(),
+};
+const crumbs: InstanceType<typeof NBreadcrumbs>["$props"] = {
+    items: [{ label: "Home", href: "/" }, { label: "Here" }],
+    linkAs: "a",
+};
+const tableMatching: InstanceType<typeof NDataTable>["$props"] = {
+    total: 120,
+    allMatching: true,
+    stacked: true,
+    "onUpdate:allMatching": (all) => !all,
+};
+const russianOverride: MessagesInput = {
+    "dialog.close": "Закрыть окно",
+    "table.selection": (count) => "Выбрано: " + count,
+};
+createLocale(ruMessages);
+createLocale(() => russianOverride);
+const confirmState = useConfirm<{ id: number }>();
+confirmState.ask({ id: 1 });
+void confirmState.run((payload) => payload?.id);
+useSortable(
+    () => [{ id: "a", title: "A" }],
+    (ids) => ids.join(","),
+    (item) => item.title,
+    { commitDelay: 0 },
+);
+useHotkeys({ "mod+s": (event) => event.preventDefault() }, { inInputs: true });
+const visibility = useColumnVisibility([{ key: "id", label: "ID" }], ["id"], "k");
+visibility.hiddenColumns.value.push("id");
+const uninstall: () => void = installEnterSubmit({ boundary: "main" });
+createFormat("ru", { timeZone: "Europe/Moscow" }).plural(3, { one: "#", other: "#" });
+createFormat("en").formatBytes(2048);
+void [multi, confirmProps, chips, crumbs, tableMatching, uninstall];
+
+const badMulti: InstanceType<typeof NMultiSelect>["$props"] = {
+    // @ts-expect-error multi-select model is an array
+    modelValue: "a",
+};
+const badMessages: MessagesInput = {
+    // @ts-expect-error unknown dictionary key
+    "dialog.closee": "x",
+};
+// @ts-expect-error plural needs the "other" form
+createFormat("en").plural(1, { one: "#" });
+// @ts-expect-error sortable items need an id
+useSortable(() => [{ title: "A" }], () => {}, () => "");
+void [badMulti, badMessages];

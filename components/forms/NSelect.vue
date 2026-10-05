@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import {
     ref,
     computed,
@@ -7,6 +8,7 @@ import {
     onBeforeUnmount,
     useId,
     watch,
+    useAttrs,
     type ComponentPublicInstance,
     type PropType,
 } from "vue";
@@ -38,9 +40,13 @@ const props = defineProps({
         type: Array as PropType<SelectOption[]>,
         default: () => [],
     },
-    placeholder: { type: String, default: "Select…" },
+    placeholder: { type: String, default: undefined },
     error: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    placeholder: "select.placeholder",
 });
 const emit = defineEmits<{
     "update:modelValue": [value: SelectValue];
@@ -48,6 +54,16 @@ const emit = defineEmits<{
 
 // Surrounding NFormField (if any) supplies invalid/required/described-by/label.
 const field = useFormField();
+// Native attributes (aria-label, aria-labelledby, id, listeners, data-*) belong
+// on the combobox button so a standalone select gets an accessible name; only
+// class and style stay on the positioning wrapper.
+defineOptions({ inheritAttrs: false });
+const attrs = useAttrs();
+const rootAttrs = computed(() => ({ class: attrs.class, style: attrs.style }));
+const controlAttrs = computed(() => {
+    const { class: _class, style: _style, ...rest } = attrs;
+    return rest;
+});
 const invalid = computed(() => props.error || !!field?.invalid.value);
 
 // useId() gives each instance stable, unique ids for ARIA wiring (matches the
@@ -67,7 +83,7 @@ const selected = computed(
     () => props.options.find((o) => o.value === props.modelValue) || null,
 );
 const displayLabel = computed(() =>
-    selected.value ? selected.value.label : props.placeholder,
+    selected.value ? selected.value.label : lbl.value.placeholder,
 );
 
 const setOptionRef =
@@ -211,6 +227,7 @@ watch(
         ref="root"
         class="n-select"
         :class="{ open, disabled, error: invalid }"
+        v-bind="rootAttrs"
     >
         <button
             type="button"
@@ -230,6 +247,7 @@ watch(
             :disabled="disabled"
             @click="toggle"
             @keydown="onKeydown"
+            v-bind="controlAttrs"
         >
             <span class="n-select__value">{{ displayLabel }}</span>
             <NIcon name="chevron-down" :size="16" class="n-select__chev" />

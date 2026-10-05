@@ -2,6 +2,7 @@
 import type { Component, PropType } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 import NBrand from "./NBrand.vue";
+import { useLabels } from "../../composables/useLocale.ts";
 
 // NSidebar — collapsible navigation rail. v-model is the active item id;
 // v-model:collapsed toggles the narrow icon-only mode. #footer slot receives { collapsed }.
@@ -33,7 +34,7 @@ interface SidebarBrand {
     glyph?: string;
 }
 
-defineProps({
+const props = defineProps({
     modelValue: {
         type: [String, Number] as PropType<SidebarValue>,
         default: "",
@@ -54,12 +55,15 @@ defineProps({
         default: () => ({ name: "nergous-ui-vue", sub: "Operations", glyph: "N" }),
     },
     linkAs: {
-        type: Object as PropType<Component>,
-        default: () => ({}),
+        // Element name or router link component for items with href. The old
+        // default ({}) rendered an empty component, so links did not appear.
+        type: [String, Object, Function] as PropType<string | Component>,
+        default: "a",
     },
-    // Accessible name for the <nav> landmark (English default; app localizes).
-    navLabel: { type: String, default: "Main navigation" },
+    // Accessible name for the <nav> landmark: prop → provided locale → English.
+    navLabel: { type: String, default: undefined },
 });
+const lbl = useLabels(props, { navLabel: "nav.main" });
 // `navigate` fires on any item activation (link or button) so the host can react
 // intentionally — e.g. close a mobile off-canvas drawer — instead of relying on a
 // bubbled click. Payload: the activated item.
@@ -91,7 +95,7 @@ function onItemClick(item: SidebarItem): void {
             />
         </div>
 
-        <nav class="n-sb__nav" :aria-label="navLabel">
+        <nav class="n-sb__nav" :aria-label="lbl.navLabel">
             <template v-for="(g, gi) in groups" :key="gi">
                 <div v-if="!collapsed && g.label" class="n-sb__group">
                     {{ g.label }}
@@ -245,7 +249,8 @@ function onItemClick(item: SidebarItem): void {
     padding: 0 6px;
     border-radius: 6px;
     background: var(--accent-soft);
-    color: var(--accent);
+    /* --accent-ink clears AA on --accent-soft; --accent reached 4.2:1 / 3:1. */
+    color: var(--accent-ink);
     font-size: 11px;
     font-weight: 700;
     display: flex;

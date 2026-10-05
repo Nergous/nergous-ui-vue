@@ -98,6 +98,12 @@ if (import.meta.env.DEV && !slots.default && !props.ariaLabel) {
     transform: scale(1);
 }
 .n-check.disabled {
+    cursor: not-allowed;
+    /* Readable muted label (AA); only the box fades. Whole-label opacity
+       dropped the text below 4.5:1. */
+    color: var(--text-3);
+}
+.n-check.disabled .n-check__box {
     opacity: 0.55;
     cursor: not-allowed;
 }

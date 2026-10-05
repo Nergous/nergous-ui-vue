@@ -37,15 +37,43 @@ const REL_UNITS: readonly [
     ["minute", 60],
 ];
 
+// Byte units supported by Intl unit formatting, 1024-based.
+const BYTE_UNITS = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte"] as const;
+
+/** Plural-category texts; `other` is required, the rest follow Intl.PluralRules. */
+export type PluralForms = Partial<Record<Intl.LDMLPluralRule, string>> & {
+    other: string;
+};
+
+/** Options of createFormat. */
+export interface FormatOptions {
+    /** IANA time zone for date output (e.g. "Europe/Moscow"); host zone when omitted. Invalid zones fall back to the host zone. */
+    timeZone?: string;
+}
+
+function validZone(locale: string | string[] | undefined, zone: string | undefined) {
+    if (!zone) return undefined;
+    try {
+        new Intl.DateTimeFormat(locale, { timeZone: zone });
+        return zone;
+    } catch {
+        return undefined;
+    }
+}
+
 /**
  * Create formatters with Intl instances cached separately for each call.
- * Dates use the host time zone; omitted locale uses the host default. Malformed
- * locale identifiers can throw during construction. No global locale state changes.
+ * Dates use options.timeZone or the host time zone; omitted locale uses the host
+ * default. Malformed locale identifiers can throw during construction. No global
+ * locale state changes.
  * @param locale - BCP 47 locale identifier or ordered preference list.
- * @returns Date parsing, date/time, relative-time, and number formatting methods.
+ * @param options - Optional display time zone.
+ * @returns Date, relative-time, number, byte-size, and plural formatting methods.
  */
-export function createFormat(locale?: string | string[]) {
+export function createFormat(locale?: string | string[], options: FormatOptions = {}) {
+    const timeZone = validZone(locale, options.timeZone);
     const dtf = new Intl.DateTimeFormat(locale, {
+        timeZone,
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -54,6 +82,7 @@ export function createFormat(locale?: string | string[]) {
     });
 
     const dshort = new Intl.DateTimeFormat(locale, {
+        timeZone,
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -61,6 +90,16 @@ export function createFormat(locale?: string | string[]) {
 
     const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
     const nf = new Intl.NumberFormat(locale);
+    const pr = new Intl.PluralRules(locale);
+    const bytes = BYTE_UNITS.map(
+        (unit, i) =>
+            new Intl.NumberFormat(locale, {
+                style: "unit",
+                unit,
+                unitDisplay: "short",
+                maximumFractionDigits: i === 0 ? 0 : 1,
+            }),
+    );
 
     return {
         /**
@@ -126,6 +165,33 @@ export function createFormat(locale?: string | string[]) {
 
             const n = typeof value === "number" ? value : Number(value);
             return Number.isFinite(n) ? nf.format(n) : EMPTY;
+        },
+
+        /**
+         * Format a byte count with 1024-based, locale-specific units (B, kB, MB…).
+         * Bytes are whole; larger units keep one fraction digit at most.
+         * @param value - Byte count or numeric string; non-finite or negative values yield an em dash.
+         * @returns The localized size, e.g. "1.5 MB" / "1,5 МБ", or an em dash.
+         */
+        formatBytes(value: string | number | null | undefined) {
+            if (value == null || (typeof value === "string" && !value.trim()))
+                return EMPTY;
+            const n = typeof value === "number" ? value : Number(value);
+            if (!Number.isFinite(n) || n < 0) return EMPTY;
+            const i = n < 1 ? 0 : Math.min(bytes.length - 1, Math.floor(Math.log(n) / Math.log(1024)));
+            return bytes[i].format(n / 1024 ** i);
+        },
+
+        /**
+         * Pick the text for a count by the locale's plural rules; `other` is the fallback.
+         * Use "#" in a form to insert the count formatted with formatNumber.
+         * @param count - The number the text refers to.
+         * @param forms - Texts per plural category, e.g. { one: "# file", other: "# files" }.
+         * @returns The matching form with "#" replaced by the count.
+         */
+        plural(count: number, forms: PluralForms) {
+            const form = forms[pr.select(count)] ?? forms.other;
+            return form.replace(/#/g, nf.format(count));
         },
     };
 }

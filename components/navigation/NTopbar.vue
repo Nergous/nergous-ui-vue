@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import NIcon from "../primitives/NIcon.vue";
+import { useLabels } from "../../composables/useLocale.ts";
 
 // NTopbar — application header bar. Props: title, subtitle, collapsible.
 // Emits `toggle` when the menu button is clicked (pair with NSidebar collapse).
 // Slots: left (after toggle), default (center), right.
 // title renders as <h1> by default (this is the page-title bar); set titleTag to
 // another element if the page already owns its <h1>. toggleLabel names the button.
-defineProps({
+const props = defineProps({
     title: { type: String, default: "" },
     subtitle: { type: String, default: "" },
     collapsible: { type: Boolean, default: true },
     titleTag: { type: String, default: "h1" },
-    toggleLabel: { type: String, default: "Toggle navigation" },
+    toggleLabel: { type: String, default: undefined },
 });
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, { toggleLabel: "topbar.toggle" });
 defineEmits(["toggle"]);
 </script>
 
@@ -22,8 +25,8 @@ defineEmits(["toggle"]);
             v-if="collapsible"
             type="button"
             class="n-tb__toggle"
-            :title="toggleLabel"
-            :aria-label="toggleLabel"
+            :title="lbl.toggleLabel"
+            :aria-label="lbl.toggleLabel"
             @click="$emit('toggle')"
         >
             <NIcon name="list" :size="18" />

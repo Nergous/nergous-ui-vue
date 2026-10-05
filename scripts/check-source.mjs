@@ -136,9 +136,20 @@ for (const name of [
     "useScrollSpy",
     "createFormat",
     "toDate",
+    "provideLocale",
+    "createLocale",
+    "useMessages",
+    "enMessages",
+    "ruMessages",
+    "useConfirm",
+    "useSortable",
+    "useHotkeys",
+    "useColumnVisibility",
+    "installEnterSubmit",
 ]) {
     assert.ok(entry.includes(name), name);
     assert.ok(legacyEntry.includes(name), name + " missing legacy export");
+    assert.ok(publicSymbols.has(name), name + " missing from index.d.ts");
 }
 for (const [i, f] of sources.entries()) {
     const { descriptor, errors } = parse(fs.readFileSync(f, "utf8"), {
@@ -172,5 +183,8 @@ for (const [i, f] of sources.entries()) {
 }
 for (const match of entry.matchAll(/(?:from|import)\s*["'](\.[^"']+)["']/g))
     assert.ok(fs.existsSync(path.join(root, match[1])), match[1]);
-assert.equal(components.length, 41);
-console.log("PASS: 41 exports/types, 43 Vue SFCs, public entry imports and IDE TSDoc.");
+assert.equal(components.length, 51);
+console.log(
+    "PASS: " + components.length + " components exported and typed, " +
+        sources.length + " Vue SFCs compiled, public entry imports and IDE TSDoc.",
+);

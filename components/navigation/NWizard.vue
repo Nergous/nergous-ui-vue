@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import { computed, type PropType } from "vue";
 import NStepper from "./NStepper.vue";
 
@@ -43,7 +44,11 @@ const props = defineProps({
     // Show the thin progress bar across the top.
     progress: { type: Boolean, default: true },
     // Accessible name for the step-rail <nav> (forwarded to NStepper).
-    navLabel: { type: String, default: "Steps" },
+    navLabel: { type: String, default: undefined },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    navLabel: "nav.steps",
 });
 const emit = defineEmits<{
     "update:modelValue": [value: WizardValue];
@@ -94,7 +99,7 @@ function prev(): void {
                     :model-value="modelValue"
                     :steps="steps"
                     :completed="completed"
-                    :nav-label="navLabel"
+                    :nav-label="lbl.navLabel"
                     @update:model-value="goTo"
                 />
             </div>

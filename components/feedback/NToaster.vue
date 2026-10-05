@@ -1,16 +1,21 @@
 <script setup lang="ts">
 // NToaster — toast notifications container. Mount once near the app root;
 // push messages from anywhere via useToast() (success / error / warning / info).
-// Locale-agnostic: pass regionLabel / dismissLabel (English defaults).
+// Labels: prop → provided locale (useLocale) → English default.
 import {
     useToast,
     type ToastTone,
 } from "../../composables/useToast.ts";
+import { useLabels } from "../../composables/useLocale.ts";
 import NIcon from "../primitives/NIcon.vue";
 
-defineProps({
-    regionLabel: { type: String, default: "Notifications" },
-    dismissLabel: { type: String, default: "Dismiss" },
+const props = defineProps({
+    regionLabel: { type: String, default: undefined },
+    dismissLabel: { type: String, default: undefined },
+});
+const lbl = useLabels(props, {
+    regionLabel: "toaster.region",
+    dismissLabel: "toaster.dismiss",
 });
 
 const { toasts, dismiss, pauseAll, resumeAll } = useToast();
@@ -33,7 +38,7 @@ const roleFor = (tone: ToastTone): "alert" | "status" =>
             class="n-toaster"
             data-overlay
             role="region"
-            :aria-label="regionLabel"
+            :aria-label="lbl.regionLabel"
             @mouseenter="pauseAll"
             @mouseleave="resumeAll"
             @focusin="pauseAll"
@@ -65,7 +70,7 @@ const roleFor = (tone: ToastTone): "alert" | "status" =>
                     <button
                         type="button"
                         class="n-toast__x"
-                        :aria-label="dismissLabel"
+                    :aria-label="lbl.dismissLabel"
                         @click="dismiss(t.id)"
                     >
                         <NIcon name="x" :size="14" />

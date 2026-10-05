@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLabels } from "../../composables/useLocale.ts";
 import { ref } from "vue";
 import NIcon from "../primitives/NIcon.vue";
 
@@ -12,10 +13,16 @@ import NIcon from "../primitives/NIcon.vue";
 const props = defineProps({
     accept: { type: String, default: "" },
     multiple: { type: Boolean, default: true },
-    title: { type: String, default: "Drop files here" },
-    orLabel: { type: String, default: "or" },
-    browseLabel: { type: String, default: "browse your device" },
+    title: { type: String, default: undefined },
+    orLabel: { type: String, default: undefined },
+    browseLabel: { type: String, default: undefined },
     hint: { type: String, default: "" },
+});
+// Labels: prop → provided locale (useLocale) → English default.
+const lbl = useLabels(props, {
+    title: "dropzone.title",
+    orLabel: "dropzone.or",
+    browseLabel: "dropzone.browse",
 });
 const emit = defineEmits<{
     files: [files: File[]];
@@ -85,10 +92,10 @@ function onPick(e: Event): void {
             @change="onPick"
         />
         <div class="n-dz__icon"><NIcon name="upload" :size="24" /></div>
-        <div class="n-dz__title">{{ title }}</div>
+        <div class="n-dz__title">{{ lbl.title }}</div>
         <div class="n-dz__hint">
-            {{ orLabel }}
-            <span class="n-dz__link">{{ browseLabel }}</span>
+            {{ lbl.orLabel }}
+            <span class="n-dz__link">{{ lbl.browseLabel }}</span>
             <template v-if="hint"> · {{ hint }}</template>
         </div>
     </label>

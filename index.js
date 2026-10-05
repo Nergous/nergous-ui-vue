@@ -63,6 +63,16 @@ import NStepper from "./components/navigation/NStepper.vue";
 import NWizard from "./components/navigation/NWizard.vue";
 import NAnchorNav from "./components/navigation/NAnchorNav.vue";
 import NAnchoredForm from "./components/navigation/NAnchoredForm.vue";
+import NMultiSelect from "./components/forms/NMultiSelect.vue";
+import NActionBar from "./components/forms/NActionBar.vue";
+import NSortHandle from "./components/forms/NSortHandle.vue";
+import NFilterChips from "./components/data-display/NFilterChips.vue";
+import NColumnPicker from "./components/data-display/NColumnPicker.vue";
+import NIconTooltip from "./components/feedback/NIconTooltip.vue";
+import NPopover from "./components/overlays/NPopover.vue";
+import NConfirmDialog from "./components/overlays/NConfirmDialog.vue";
+import NToolbar from "./components/navigation/NToolbar.vue";
+import NBreadcrumbs from "./components/navigation/NBreadcrumbs.vue";
 
 import {
     useTheme,
@@ -71,6 +81,18 @@ import {
 } from "./composables/useTheme.ts";
 import { useToast } from "./composables/useToast.ts";
 import { useScrollSpy } from "./composables/useScrollSpy.ts";
+import {
+    provideLocale,
+    createLocale,
+    useMessages,
+} from "./composables/useLocale.ts";
+import { enMessages } from "./locales/en.ts";
+import { ruMessages } from "./locales/ru.ts";
+import { useConfirm } from "./composables/useConfirm.ts";
+import { useSortable } from "./composables/useSortable.ts";
+import { useHotkeys } from "./composables/useHotkeys.ts";
+import { useColumnVisibility } from "./composables/useColumnVisibility.ts";
+import { installEnterSubmit } from "./composables/enterSubmit.ts";
 
 import { createFormat, toDate } from "./utils/format.ts";
 
@@ -116,11 +138,31 @@ export {
     NWizard,
     NAnchorNav,
     NAnchoredForm,
+    NMultiSelect,
+    NActionBar,
+    NSortHandle,
+    NFilterChips,
+    NColumnPicker,
+    NIconTooltip,
+    NPopover,
+    NConfirmDialog,
+    NToolbar,
+    NBreadcrumbs,
     useTheme,
     THEME_STORAGE_KEY,
     DENSITY_STORAGE_KEY,
     useToast,
     useScrollSpy,
+    provideLocale,
+    createLocale,
+    useMessages,
+    enMessages,
+    ruMessages,
+    useConfirm,
+    useSortable,
+    useHotkeys,
+    useColumnVisibility,
+    installEnterSubmit,
     createFormat,
     toDate,
 };
