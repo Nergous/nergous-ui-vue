@@ -528,7 +528,14 @@ test("toaster fits 320px, scroll offset honored, empty format values preserved",
 test("accessible names for titleless windows and axe smoke for audited surfaces", async ({
     page,
 }) => {
-    for (const mode of ["select", "rte", "drop", "pagination", "unnamed"]) {
+    for (const mode of [
+        "select",
+        "rte",
+        "rte-full",
+        "drop",
+        "pagination",
+        "unnamed",
+    ]) {
         await load(page, mode);
         if (mode === "unnamed") {
             await page.locator("#open-modal").click();
@@ -552,4 +559,134 @@ test("accessible names for titleless windows and axe smoke for audited surfaces"
         );
         expect(violations, mode).toEqual([]);
     }
+});
+
+async function caretAtEnd(page) {
+    await page.locator(".n-rte__content").evaluate((el) => {
+        el.focus();
+        const range = document.createRange();
+        range.selectNodeContents(el.lastElementChild ?? el);
+        range.collapse(false);
+        const selection = getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.dispatchEvent(new Event("selectionchange"));
+    });
+}
+test("full editor keeps images, tables and layout styles but strips unsafe parts", async ({
+    page,
+}) => {
+    await load(page, "rte-full");
+    await page.evaluate(
+        () =>
+            (window.audit.html.value =
+                '<p style="text-align: center; color: red">c</p>' +
+                '<img src="/a.png" alt="A" onerror="window.auditXss=1">' +
+                '<img src="javascript:alert(1)"><img src="data:image/png,x">' +
+                '<table border="1"><tbody><tr><td colspan="2" onclick="window.auditXss=1" style="width: 50%; background: red">1</td></tr></tbody></table>' +
+                '<h4>h</h4><p>x<sub>2</sub><sup>3</sup><u>u</u></p><hr>' +
+                '<a href="/f" target="_blank">f</a><a href="javascript:alert(1)" target="_top">bad</a>' +
+                "<p>marker</p>"),
+    );
+    const content = page.locator(".n-rte__content");
+    await expect(content).toContainText("marker");
+    expect(await page.evaluate(() => window.auditXss)).toBeUndefined();
+    await expect(content.locator("p").first()).toHaveAttribute(
+        "style",
+        "text-align: center",
+    );
+    await expect(content.locator("img")).toHaveCount(1);
+    await expect(content.locator("img")).toHaveAttribute("alt", "A");
+    await expect(content.locator("td")).toHaveAttribute("colspan", "2");
+    await expect(content.locator("td")).toHaveAttribute("style", "width: 50%");
+    await expect(content.locator("table")).toHaveAttribute("border", "1");
+    await expect(content.locator("h4, sub, sup, u, hr")).toHaveCount(5);
+    await expect(content.locator('a[target="_blank"]')).toHaveAttribute(
+        "rel",
+        "noopener noreferrer",
+    );
+    const attrs = await content.evaluate((el) =>
+        [...el.querySelectorAll("*")].flatMap((n) =>
+            [...n.attributes].map((a) => a.name + "=" + a.value),
+        ),
+    );
+    expect(attrs.some((a) => a.startsWith("on"))).toBe(false);
+    expect(attrs.some((a) => /javascript:|data:|_top|red/.test(a))).toBe(
+        false,
+    );
+});
+test("full editor inserts tables and edits rows and columns", async ({
+    page,
+}) => {
+    await load(page, "rte-full");
+    await caretAtEnd(page);
+    await page.getByRole("button", { name: "Table", exact: true }).click();
+    await expect(
+        page.getByRole("dialog", { name: "Insert table" }),
+    ).toBeVisible();
+    await page.getByRole("spinbutton", { name: "Rows" }).fill("2");
+    await page.getByRole("spinbutton", { name: "Columns" }).fill("3");
+    await page.getByRole("button", { name: "Insert", exact: true }).click();
+    const table = page.locator(".n-rte__content table");
+    await expect(table.locator("tr")).toHaveCount(2);
+    await expect(table.locator("th")).toHaveCount(3);
+    await expect(table.locator("td")).toHaveCount(3);
+    expect(await page.evaluate(() => window.audit.html.value)).toContain(
+        "<table>",
+    );
+    const tools = page.getByRole("toolbar", { name: "Table" });
+    await expect(tools).toBeVisible();
+    await tools.getByRole("button", { name: "Row below" }).click();
+    await expect(table.locator("tr")).toHaveCount(3);
+    await expect(table.locator("thead tr")).toHaveCount(1);
+    await tools.getByRole("button", { name: "Column right" }).click();
+    await expect(table.locator("th")).toHaveCount(4);
+    await tools.getByRole("button", { name: "Delete column" }).click();
+    await expect(table.locator("th")).toHaveCount(3);
+    await page.keyboard.press("Tab");
+    await page.keyboard.type("next");
+    // The caret followed the new body row; Tab moved it one cell to the right.
+    await expect(
+        table.locator("tbody tr").first().locator("td").nth(2),
+    ).toHaveText("next");
+    await tools.getByRole("button", { name: "Delete table" }).click();
+    await expect(page.locator(".n-rte__content table")).toHaveCount(0);
+});
+test("full editor inserts picked images and edits their alt text", async ({
+    page,
+}) => {
+    await load(page, "rte-full");
+    await caretAtEnd(page);
+    await page.getByRole("button", { name: "Image", exact: true }).click();
+    const image = page.locator(".n-rte__content img");
+    await expect(image).toHaveAttribute("src", "/picked.png");
+    await expect(image).toHaveAttribute("alt", "Picked");
+    await image.dblclick();
+    await expect(page.getByRole("dialog", { name: "Image" })).toBeVisible();
+    await page
+        .getByRole("textbox", { name: "Alternative text" })
+        .fill("New alt");
+    await page.getByRole("textbox", { name: "Width, px" }).fill("320");
+    await page.getByRole("button", { name: "Apply", exact: true }).click();
+    await expect(image).toHaveAttribute("alt", "New alt");
+    await expect(image).toHaveAttribute("width", "320");
+    expect(await page.evaluate(() => window.audit.html.value)).toContain(
+        'alt="New alt"',
+    );
+});
+test("full editor link dialog picks a file and opens it in a new tab", async ({
+    page,
+}) => {
+    await load(page, "rte-full");
+    await caretAtEnd(page);
+    await page.getByRole("button", { name: "Link", exact: true }).click();
+    await page.getByRole("button", { name: "Choose file" }).click();
+    await expect(page.getByRole("textbox", { name: "Link URL" })).toHaveValue(
+        "/files/doc.pdf",
+    );
+    await page.getByRole("checkbox", { name: "Open in a new tab" }).click();
+    await page.getByRole("button", { name: "Apply", exact: true }).click();
+    const link = page.locator('.n-rte__content a[href="/files/doc.pdf"]');
+    await expect(link).toHaveText("doc.pdf");
+    await expect(link).toHaveAttribute("target", "_blank");
 });

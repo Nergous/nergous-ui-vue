@@ -269,28 +269,96 @@ export type RichTextTool =
     | "link"
     | "quote"
     | "code"
-    | "clear";
+    | "clear"
+    | "undo"
+    | "redo"
+    | "underline"
+    | "sub"
+    | "sup"
+    | "h4"
+    | "alignLeft"
+    | "alignCenter"
+    | "alignRight"
+    | "alignJustify"
+    | "image"
+    | "table"
+    | "hr"
+    | "fullscreen";
+/** Row/column command of the NRichText table toolbar. */
+export type RichTextTableCommand =
+    | "rowAbove"
+    | "rowBelow"
+    | "colLeft"
+    | "colRight"
+    | "rowDelete"
+    | "colDelete"
+    | "tableDelete";
 /** Localized NRichText labels keyed by toolbar command or dialog control. */
 export type RichTextLabels = Partial<
     Record<
         | RichTextTool
+        | RichTextTableCommand
         | "toolbar"
         | "linkPrompt"
         | "linkTitle"
         | "linkConfirm"
         | "linkCancel"
-        | "linkRemove",
+        | "linkRemove"
+        | "linkNewTab"
+        | "linkPick"
+        | "imageTitle"
+        | "imageUrl"
+        | "imageAlt"
+        | "imageWidth"
+        | "imagePick"
+        | "imageRemove"
+        | "tableTitle"
+        | "tableRows"
+        | "tableCols"
+        | "tableHeader"
+        | "tableInsert"
+        | "tableTools",
         string
     >
 >;
+/** Image returned by an NRichText `pickImage` callback. */
+export interface RichTextImage {
+    /** Image URL; http, https or relative. Unsafe URLs are ignored. */
+    src: string;
+    /** Alternative text for the inserted image. */
+    alt?: string;
+    /** Optional title, kept for API symmetry; not inserted by the toolbar. */
+    title?: string;
+}
+/** File link returned by an NRichText `pickLink` callback. */
+export interface RichTextLink {
+    /** Link URL; http, https, mailto, tel or relative. */
+    href: string;
+    /** Link text used when nothing is selected. Defaults to the URL. */
+    text?: string;
+}
 /** Sanitizing rich-text input backed by contenteditable. */
 export declare const NRichText: UIComponent<
     Model<string> &
         Field & {
-            /** Partial toolbar and link-dialog labels. */
+            /** Partial toolbar and dialog labels. Image and table dialogs reuse linkConfirm/linkCancel. */
             labels?: RichTextLabels;
-            /** Enabled toolbar commands. An empty list enables all commands. */
+            /**
+             * Toolbar and content allowlist. "full" adds undo/redo, underline,
+             * sub/sup, H4, alignment, images, tables, horizontal rules, links in a
+             * new tab and full screen, and keeps images, tables and layout styles.
+             * @defaultValue "basic"
+             */
+            preset?: "basic" | "full";
+            /**
+             * Enabled toolbar commands. An empty list enables the preset's commands.
+             * Requesting any "full" command also enables the full content allowlist.
+             */
             tools?: RichTextTool[];
+            /** App-side image picker (e.g. a media library). Resolve null to cancel. */
+            pickImage?: () => Promise<RichTextImage | null | undefined>;
+            /** App-side file picker shown in the link dialog. Resolve null to cancel. */
+            pickLink?: () => Promise<RichTextLink | null | undefined>;
         },
     Update<string>
 >;

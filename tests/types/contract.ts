@@ -6,6 +6,7 @@ import {
     NModal,
     NDataTable,
     NDropzone,
+    NRichText,
     useTheme,
     useToast,
     createFormat,
@@ -47,6 +48,14 @@ const pagination: InstanceType<typeof NPagination>["$props"] = {
 void table;
 void drop;
 void pagination;
+const editor: InstanceType<typeof NRichText>["$props"] = {
+    preset: "full",
+    tools: ["image", "table", "alignCenter"],
+    labels: { rowBelow: "Row below", imagePick: "Library" },
+    pickImage: async () => ({ src: "/a.png", alt: "A" }),
+    pickLink: async () => null,
+};
+void editor;
 useTheme().setTheme("dark");
 useToast().push({ title: "Saved", duration: 0 });
 createFormat("ru").formatNumber(null);
@@ -66,7 +75,14 @@ const badPagination: InstanceType<typeof NPagination>["$props"] = {
     // @ts-expect-error pageSizes is a number list
     pageSizes: ["10"],
 };
+const badEditor: InstanceType<typeof NRichText>["$props"] = {
+    // @ts-expect-error unknown preset
+    preset: "huge",
+    // @ts-expect-error unknown toolbar command
+    tools: ["video"],
+};
 void bad;
 void badOptions;
 void badButton;
 void badPagination;
+void badEditor;

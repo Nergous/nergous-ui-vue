@@ -90,6 +90,27 @@ The backend must still validate/sanitize stored content and every rendering sink
 Client cleanup is not a trust boundary for other API clients or legacy records.
 Use `labels` to localize toolbar/link dialogs and `tools` to restrict formatting.
 
+`preset="full"` widens both the toolbar and the allowlist. It adds undo/redo,
+underline, subscript/superscript, H4, alignment, images, tables, horizontal rules,
+links opening in a new tab and a full-screen mode (Escape leaves it). The rich
+allowlist also keeps h4-h6, sub, sup, small, hr, img, figure, figcaption, table,
+caption, thead, tbody, tfoot, tr, th and td; the attributes img src/alt/title/
+width/height, a title/target (only `_blank`, with rel), ol start, table
+border/cellpadding/cellspacing/width and th/td colspan/rowspan/scope/width; and
+the inline styles text-align, float, vertical-align, width and height with
+validated values. Image sources accept only http, https and relative URLs.
+Requesting any full-only command through `tools` also enables this allowlist.
+
+Images: the toolbar inserts by URL, or through `pickImage` (an async callback
+that resolves `{ src, alt }`, e.g. from a media library). Double-click an image
+to edit its URL, alt text and width or remove it. Tables: insert with a row/column
+count and an optional header row; while the caret is in a cell a table toolbar adds
+or deletes rows/columns or the table. Tab/Shift+Tab move between cells, and Tab in
+the last cell adds a row. `pickLink` adds a file button to the link dialog.
+Image and table dialogs reuse the `linkConfirm`/`linkCancel` labels. The
+editable area height follows the `--n-rte-min-height` and `--n-rte-max-height`
+custom properties (defaults 140px and 420px).
+
 ## Files and tables
 
 NDropzone treats accept as a UI filter (extensions, exact MIME, MIME wildcards).

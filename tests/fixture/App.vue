@@ -25,6 +25,9 @@ const html = ref(
         ? '<img src="data:image/png,broken" onerror="window.auditXss=1">hello'
         : "hello",
 );
+// Full-preset editor pickers resolve immediately (stand-ins for a media library).
+const pickImage = async () => ({ src: "/picked.png", alt: "Picked" });
+const pickLink = async () => ({ href: "/files/doc.pdf", text: "doc.pdf" });
 const selected = ref("a"),
     page = ref(10),
     pages = ref(3),
@@ -85,6 +88,14 @@ const FakeLink = defineComponent({
         <template v-if="mode === 'xss' || mode === 'rte'"
             ><NFormField tag="div" label="Content"
                 ><NRichText v-model="html" /></NFormField
+        ></template>
+        <template v-else-if="mode === 'rte-full'"
+            ><NFormField tag="div" label="Content"
+                ><NRichText
+                    v-model="html"
+                    preset="full"
+                    :pick-image="pickImage"
+                    :pick-link="pickLink" /></NFormField
         ></template>
         <template v-else-if="mode === 'button'">
             <NButton as="a" href="#activated" disabled @click="audit.actions++"

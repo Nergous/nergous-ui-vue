@@ -3,6 +3,27 @@
 All notable changes to the nergous-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
+## v1.0.7 - 2026-10-05
+
+### Added
+
+- Add an opt-in `preset="full"` to `NRichText`: undo/redo, underline,
+  subscript/superscript, H4, alignment, images (URL dialog, app picker through
+  `pickImage`, double-click editing), tables (insert dialog, row/column
+  toolbar, Tab navigation), horizontal rules, links opening in a new tab, a
+  file picker for links through `pickLink` and a full-screen mode.
+- Keep images, tables, extra headings, sub/sup and validated layout styles in
+  the full preset's sanitizer allowlist; image sources accept http, https and
+  relative URLs only.
+- Size the editable area through `--n-rte-min-height` / `--n-rte-max-height`.
+- Add underline, subscript, superscript, alignment, table, rule, undo, redo,
+  maximize and minimize icons.
+
+### Fixed
+
+- Drop SVG, MathML and frame elements together with their content in the
+  editor sanitizer.
+
 ## v1.0.6 - 2026-09-24
 
 ### Added

@@ -201,7 +201,7 @@ portable parsing. The helper is also exported standalone from the barrel.
 | `NSelect` | Themed listbox (replaces native `<select>`) | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `error` |
 | `NSelectWithSearch` | Searchable single-select listbox; English search/empty defaults | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `searchPlaceholder`, `noResultsText`, `error` |
 | `NTextarea` | Multi-line input | `v-model`, `rows` |
-| `NRichText` | Mini WYSIWYG on `contenteditable` | `v-model` (HTML string), `placeholder`, `error`, `disabled`, `labels` (toolbar captions), `tools` (limit the button set). With `NFormField` use `tag="div"` |
+| `NRichText` | Mini WYSIWYG on `contenteditable` | `v-model` (HTML string), `placeholder`, `error`, `disabled`, `labels` (toolbar captions), `tools` (limit the button set), `preset="full"` (images, tables, alignment, undo/redo, sub/sup, full screen), `pickImage`/`pickLink` (app media pickers). With `NFormField` use `tag="div"` |
 | `NSwitch` | Toggle | `v-model` (Boolean) |
 | `NCheckbox` | Checkbox | `v-model` (Boolean) + label slot |
 | `NRadioGroup` | Radio group | `v-model`, `options: [{value,label}]` |
