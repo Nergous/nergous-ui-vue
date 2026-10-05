@@ -84,6 +84,25 @@ test("multi-select keeps option order, summarizes, clears and returns focus", as
     await expect(panel).toBeHidden();
 });
 
+test("content-width popups open at their natural width and stay put", async ({ page }) => {
+    await load(page, "kit");
+    await page.getByRole("button", { name: /^Letters:/ }).click();
+    const panel = page.locator(".n-ms__panel");
+    await expect(panel).toBeVisible();
+    // Sample a few frames: the old scrollWidth feedback shrank the panel 2px
+    // per ResizeObserver pass, starting from the full viewport width.
+    const widths = await panel.evaluate(async (el) => {
+        const out = [];
+        for (let i = 0; i < 8; i++) {
+            out.push(el.getBoundingClientRect().width);
+            await new Promise(requestAnimationFrame);
+        }
+        return out;
+    });
+    expect(new Set(widths).size).toBe(1);
+    expect(widths[0]).toBeLessThan(400);
+});
+
 test("popover closes on outside click and via slot close with focus return", async ({ page }) => {
     await load(page, "kit");
     const toggle = page.getByRole("button", { name: "Export" });

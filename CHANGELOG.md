@@ -3,6 +3,17 @@
 All notable changes to the nergous-ui-vue design system are documented here.
 The project loosely follows [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- Content-sized popups (`NMultiSelect`, `NDropdown`, `NPopover`) no longer
+  shrink frame by frame after opening; `NMultiSelect` no longer starts at full
+  viewport width. `useFloating` measured them with `scrollWidth`, which
+  returned the width it had just set minus the border, so every ResizeObserver
+  pass narrowed the popup by 2px. The natural width is now measured with inline
+  sizing lifted.
+
 ## v1.1.0 - 2026-10-05
 
 ### Added

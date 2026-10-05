@@ -12,6 +12,21 @@ export interface FloatingState {
     style: Ref<CSSProperties>;
 }
 
+// Width the popup wants for its content (border-box). Inline sizing is lifted
+// for one synchronous layout so the result never depends on the width set by
+// the previous pass; reading scrollWidth instead fed that width back (minus the
+// border) and the ResizeObserver shrank the popup frame by frame.
+function naturalWidth(el: HTMLElement): number {
+    const saved = el.style.cssText;
+    el.style.position = "fixed";
+    el.style.width = "max-content";
+    el.style.minWidth = "";
+    el.style.maxWidth = "none";
+    const width = Math.ceil(el.getBoundingClientRect().width);
+    el.style.cssText = saved;
+    return width;
+}
+
 // Keep existing popups out of scroll-clipping bodies, but inside their overlay
 // owner so inertness, focus trapping and layer order remain consistent.
 export function useFloating(
@@ -33,7 +48,7 @@ export function useFloating(
         const width = Math.min(
             matchWidth
                 ? rect.width
-                : Math.max(rect.width, popup.value.scrollWidth),
+                : Math.max(rect.width, naturalWidth(popup.value)),
             window.innerWidth - margin * 2,
         );
         const below = window.innerHeight - rect.bottom - gap - margin;
