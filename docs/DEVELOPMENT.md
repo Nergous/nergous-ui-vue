@@ -17,7 +17,7 @@ On Linux CI, install browser system dependencies with
 ## Gates
 
 - typecheck validates TypeScript and Vue SFC source under strict compiler settings.
-- test:static compiles all 51 component SFCs and 2 examples, checks public
+- test:static compiles all 52 component SFCs and 2 examples, checks public
   imports/type declarations and verifies public TSDoc through TypeScript's symbol API.
 - test:types checks valid/invalid public TypeScript usage.
 - test:browser runs isolated Playwright regressions with external requests blocked;

@@ -1,7 +1,7 @@
 # Public API and behavior contracts
 
 Import only from `nergous-ui-vue` (or the existing vendored barrel). Internal
-component paths and composables are not supported package subpaths. All 51
+component paths and composables are not supported package subpaths. All 52
 component props and event/slot payloads are declared in `../index.d.ts`; the
 README lists component purposes. Components are named imports, not an app plugin.
 
@@ -29,6 +29,7 @@ unique keys named by `rowKey` (default `id`).
 |---|---|---|
 | NInput, NTextarea, NRichText | modelValue / update:modelValue | no content slot |
 | NSelect, NSelectWithSearch, NRadioGroup, NSegmented, NTabs | modelValue / update:modelValue; options/tabs | no native option slot |
+| NDatePicker | string modelValue / update:modelValue in the native input format of its type | none |
 | NMultiSelect | array modelValue / update:modelValue, kept in options order | none |
 | NCheckbox, NSwitch | Boolean modelValue / update:modelValue | default label |
 | NPagination | page / update:page; pages normalized to at least 1; optional jumpable input; optional pageSize / update:pageSize with pageSizes; hideOnSinglePage with total | none |
@@ -54,7 +55,7 @@ unique keys named by `rowKey` (default `id`).
 | NIcon, NAvatar, NAvatarGroup, NStatCard, NActivityRow, NToaster, NProgress, NSpinner, NSkeleton, NBrand | presentation props; toaster uses useToast | none |
 
 Native attributes follow the component root; NInput forwards them to its input.
-NSelect, NSelectWithSearch and NMultiSelect keep class/style on the wrapper and
+NSelect, NSelectWithSearch, NMultiSelect and NDatePicker keep class/style on the wrapper and
 forward other attributes (aria-label, aria-labelledby, id, listeners) to the
 combobox button, so a select outside NFormField can be named with aria-label.
 Use NFormField for shared validation/label associations. For grouped controls

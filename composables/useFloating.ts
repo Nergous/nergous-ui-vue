@@ -4,6 +4,11 @@ type FloatingAlign = "left" | "right"
 
 interface FloatingOptions {
     matchWidth?: boolean;
+    // Size to the content alone; by default a non-matching popup is still at
+    // least as wide as its anchor.
+    contentWidth?: boolean;
+    // Height cap in px (also the flip threshold, minus 40px). @defaultValue 320
+    maxHeight?: number;
     align?: FloatingAlign | (() => FloatingAlign);
 }
 
@@ -33,7 +38,12 @@ export function useFloating(
     anchor: Ref<HTMLElement | null>,
     popup: Ref<HTMLElement | null>,
     open: Ref<boolean>,
-    { matchWidth = true, align = "left" }: FloatingOptions = {},
+    {
+        matchWidth = true,
+        contentWidth = false,
+        maxHeight = 320,
+        align = "left",
+    }: FloatingOptions = {},
 ): FloatingState {
     const target = ref<string | HTMLElement>("body");
     const style = ref<CSSProperties>({});
@@ -48,12 +58,16 @@ export function useFloating(
         const width = Math.min(
             matchWidth
                 ? rect.width
-                : Math.max(rect.width, naturalWidth(popup.value)),
+                : contentWidth
+                  ? naturalWidth(popup.value)
+                  : Math.max(rect.width, naturalWidth(popup.value)),
             window.innerWidth - margin * 2,
         );
         const below = window.innerHeight - rect.bottom - gap - margin;
         const above = rect.top - gap - margin;
-        const flip = below < Math.min(popup.value.scrollHeight, 280) && above > below;
+        const flip =
+            below < Math.min(popup.value.scrollHeight, maxHeight - 40) &&
+            above > below;
         const height = Math.max(0, flip ? above : below);
         const rightAligned = (typeof align === "function" ? align() : align) === "right";
         const left = Math.max(
@@ -72,7 +86,7 @@ export function useFloating(
             maxWidth: `${width}px`,
             top: flip ? "auto" : `${rect.bottom + gap}px`,
             bottom: flip ? `${window.innerHeight - rect.top + gap}px` : "auto",
-            maxHeight: `${Math.min(320, height)}px`,
+            maxHeight: `${Math.min(maxHeight, height)}px`,
             zIndex: target.value === document.body ? 1250 : 2,
         };
     }

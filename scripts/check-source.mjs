@@ -183,7 +183,7 @@ for (const [i, f] of sources.entries()) {
 }
 for (const match of entry.matchAll(/(?:from|import)\s*["'](\.[^"']+)["']/g))
     assert.ok(fs.existsSync(path.join(root, match[1])), match[1]);
-assert.equal(components.length, 51);
+assert.equal(components.length, 52);
 console.log(
     "PASS: " + components.length + " components exported and typed, " +
         sources.length + " Vue SFCs compiled, public entry imports and IDE TSDoc.",

@@ -224,6 +224,7 @@ keys such as `"table.selection"` build text from counts.
 | `NInput` | Text input | `v-model`, `type`, `icon`, `error`, `placeholder` |
 | `NSelect` | Themed listbox (replaces native `<select>`) | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `error`; `aria-label`/`id` go to the combobox |
 | `NSelectWithSearch` | Searchable single-select listbox; English search/empty defaults | `v-model` (value), `options: [{value,label,disabled?}]`, `placeholder`, `searchPlaceholder`, `noResultsText`, `error` |
+| `NDatePicker` | Date / datetime / time / month / year picker: typed field + themed calendar popup | `v-model` (string in the native input format: `2026-10-06`, `2026-10-06T14:30`, `14:30`, `2026-10`, `2026`), `type`, `min`, `max`, `clearable`, `locale`, `weekStart`, `minuteStep`, `defaultTime`, `error` |
 | `NMultiSelect` | Checkbox-panel multi-select (list filters) | `v-model` (array, options order), `options`, `label`, `placeholder`, `search`; summary "First +N", highlighted while set |
 | `NTextarea` | Multi-line input | `v-model`, `rows` |
 | `NRichText` | Mini WYSIWYG on `contenteditable` | `v-model` (HTML string), `placeholder`, `error`, `disabled`, `labels` (toolbar captions), `tools` (limit the button set), `preset="full"` (images, tables, alignment, undo/redo, sub/sup, full screen), `pickImage`/`pickLink` (app media pickers). With `NFormField` use `tag="div"` |

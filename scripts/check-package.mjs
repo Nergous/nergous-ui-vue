@@ -150,7 +150,7 @@ try {
         await page.evaluate(
             () => window.packageExports.filter((n) => n.startsWith("N")).length,
         ),
-        51,
+        52,
     );
     assert.equal(
         await page
@@ -160,7 +160,7 @@ try {
     );
     assert.deepEqual(errors, []);
     console.log(
-        "PASS: archive installed cache-first, 51 component exports, TypeScript, production build, CSS/fonts and rendered button. " +
+        "PASS: archive installed cache-first, 52 component exports, TypeScript, production build, CSS/fonts and rendered button. " +
             packed.filename,
     );
 } finally {

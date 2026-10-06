@@ -98,6 +98,7 @@ export const PATHS: Readonly<Record<string, readonly string[]>> = {
         "M12 3C9.5 5.5 9.5 18.5 12 21",
     ],
     calendar: ["M4 6h16v15H4z", "M4 10h16", "M8 3v4", "M16 3v4"],
+    clock: ["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18", "M12 7v5l3 2"],
     filter: ["M3 5h18l-7 8v6l-4-2v-4z"],
     heart: [
         "M12 21C5 14 2 9 5.5 5.5a4.5 4.5 0 0 1 6.5 0 4.5 4.5 0 0 1 6.5 0C22 9 19 14 12 21z",

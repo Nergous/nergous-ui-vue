@@ -375,6 +375,35 @@ export declare const NSelect: UIComponent<
         },
     Update
 >;
+/**
+ * Picker for a date, date and time, time, month, or year with a typed text field and a themed popup.
+ * The value uses native input formats: date "2026-10-06", datetime "2026-10-06T14:30", time "14:30",
+ * month "2026-10", year "2026"; "" is empty. Attributes other than class/style go to the text input.
+ */
+export declare const NDatePicker: UIComponent<
+    Model<string> &
+        Field & {
+            /** Picker kind and value format. @defaultValue "date" */
+            type?: "date" | "datetime" | "time" | "month" | "year";
+            /** Earliest value in the same format; a datetime also accepts a date. */
+            min?: string;
+            /** Latest value in the same format; a datetime also accepts a date. */
+            max?: string;
+            /** Show the clear buttons. @defaultValue true */
+            clearable?: boolean;
+            /** BCP 47 locale for names and the typed format. Defaults to the dictionary. */
+            locale?: string;
+            /** First day of the week, 0 = Sunday. Defaults to the dictionary. */
+            weekStart?: number;
+            /** Step of the minute arrow keys. @defaultValue 1 */
+            minuteStep?: number;
+            /** Time "HH:mm" for a datetime that gets its first date; empty means the current time. */
+            defaultTime?: string;
+        },
+    Update<string>,
+    DefaultSlots,
+    InputHTMLAttributes
+>;
 /** Themeable single-select listbox with client-side search. Attributes other than class/style go to the combobox button. */
 export declare const NSelectWithSearch: UIComponent<
     Model &
@@ -1445,6 +1474,57 @@ export interface Messages {
     "sort.position": (label: string, position: number, total: number) => string;
     /** Breadcrumb landmark name. */
     "breadcrumbs.label": string;
+    /** BCP 47 locale of NDatePicker names and its typed format. */
+    "datePicker.locale": string;
+    /** First day of the NDatePicker week, 0 = Sunday. */
+    "datePicker.weekStart": number;
+    /** Format-hint tokens of the NDatePicker placeholder. */
+    "datePicker.tokens": {
+        /** Year token. */
+        year: string;
+        /** Month token. */
+        month: string;
+        /** Day token. */
+        day: string;
+        /** Hour token. */
+        hour: string;
+        /** Minute token. */
+        minute: string;
+    };
+    /** Date picker open button and popup name. */
+    "datePicker.openDate": string;
+    /** Time picker open button and popup name. */
+    "datePicker.openTime": string;
+    /** Previous-month button. */
+    "datePicker.prevMonth": string;
+    /** Next-month button. */
+    "datePicker.nextMonth": string;
+    /** Previous-year button. */
+    "datePicker.prevYear": string;
+    /** Next-year button. */
+    "datePicker.nextYear": string;
+    /** Previous year-page button. */
+    "datePicker.prevYears": string;
+    /** Next year-page button. */
+    "datePicker.nextYears": string;
+    /** Hint of the title that switches to months. */
+    "datePicker.chooseMonth": string;
+    /** Hint of the title that switches to years. */
+    "datePicker.chooseYear": string;
+    /** Pick-today button. */
+    "datePicker.today": string;
+    /** Pick-current-time button. */
+    "datePicker.now": string;
+    /** Clear button. */
+    "datePicker.clear": string;
+    /** Close button of the time popup. */
+    "datePicker.done": string;
+    /** Time field group. */
+    "datePicker.time": string;
+    /** Hours field. */
+    "datePicker.hours": string;
+    /** Minutes field. */
+    "datePicker.minutes": string;
     /** NRichText labels, merged under the labels prop. */
     richText: RichTextLabels;
 }

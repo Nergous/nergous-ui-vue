@@ -59,6 +59,32 @@ export interface Messages {
     "sort.hint": string;
     "sort.position": (label: string, position: number, total: number) => string;
     "breadcrumbs.label": string;
+    "datePicker.locale": string;
+    "datePicker.weekStart": number;
+    "datePicker.tokens": {
+        year: string;
+        month: string;
+        day: string;
+        hour: string;
+        minute: string;
+    };
+    "datePicker.openDate": string;
+    "datePicker.openTime": string;
+    "datePicker.prevMonth": string;
+    "datePicker.nextMonth": string;
+    "datePicker.prevYear": string;
+    "datePicker.nextYear": string;
+    "datePicker.prevYears": string;
+    "datePicker.nextYears": string;
+    "datePicker.chooseMonth": string;
+    "datePicker.chooseYear": string;
+    "datePicker.today": string;
+    "datePicker.now": string;
+    "datePicker.clear": string;
+    "datePicker.done": string;
+    "datePicker.time": string;
+    "datePicker.hours": string;
+    "datePicker.minutes": string;
     richText: Partial<Record<string, string>>;
 }
 
@@ -121,5 +147,31 @@ export const enMessages: Messages = {
     "sort.position": (label, position, total) =>
         `${label}: position ${position} of ${total}`,
     "breadcrumbs.label": "Breadcrumb",
+    "datePicker.locale": "en-US",
+    "datePicker.weekStart": 0,
+    "datePicker.tokens": {
+        year: "YYYY",
+        month: "MM",
+        day: "DD",
+        hour: "hh",
+        minute: "mm",
+    },
+    "datePicker.openDate": "Choose date",
+    "datePicker.openTime": "Choose time",
+    "datePicker.prevMonth": "Previous month",
+    "datePicker.nextMonth": "Next month",
+    "datePicker.prevYear": "Previous year",
+    "datePicker.nextYear": "Next year",
+    "datePicker.prevYears": "Previous years",
+    "datePicker.nextYears": "Next years",
+    "datePicker.chooseMonth": "Choose month",
+    "datePicker.chooseYear": "Choose year",
+    "datePicker.today": "Today",
+    "datePicker.now": "Now",
+    "datePicker.clear": "Clear",
+    "datePicker.done": "Done",
+    "datePicker.time": "Time",
+    "datePicker.hours": "Hours",
+    "datePicker.minutes": "Minutes",
     richText: {},
 };

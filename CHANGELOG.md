@@ -7,6 +7,15 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `NDatePicker`: one picker for `type="date" | "datetime" | "time" | "month"
+  | "year"`, a themed replacement for native date inputs. The value is the
+  string a native input would hold (`2026-10-06`, `2026-10-06T14:30`,
+  `14:30`, `2026-10`, `2026`). The field accepts typed text in the locale
+  format; the popup has a day grid whose title zooms out to months and years,
+  hour/minute fields, `min`/`max` bounds and full keyboard support. Locale,
+  first weekday and labels come from the locale provider (`datePicker.*`
+  keys).
+- `clock` icon.
 - `NBrand` `logo` prop and `NSidebar` `brand.logo`: an image URL (for
   example the site favicon) shown in the brand tile instead of the text
   glyph. If the image fails to load, the glyph is shown again.

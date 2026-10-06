@@ -29,6 +29,7 @@ const {
     NIconTooltip,
     NSidebar,
     NInput,
+    NDatePicker,
     useScrollSpy,
     provideLocale,
     ruMessages,
@@ -51,6 +52,18 @@ const html = ref(
 // Full-preset editor pickers resolve immediately (stand-ins for a media library).
 const pickImage = async () => ({ src: "/picked.png", alt: "Picked" });
 const pickLink = async () => ({ href: "/files/doc.pdf", text: "doc.pdf" });
+// NDatePicker fixture state (mode=datepicker).
+const dp = {
+    date: ref("2026-10-06"),
+    datetime: ref(""),
+    time: ref(""),
+    month: ref(""),
+    year: ref(""),
+    min: ref(""),
+    max: ref(""),
+    disabled: ref(false),
+};
+const { date: dpDate, datetime: dpDatetime, time: dpTime, month: dpMonth, year: dpYear, min: dpMin, max: dpMax, disabled: dpDisabled } = dp;
 // Sidebar brand logo: a valid inline SVG; tests swap it for a broken URL.
 const sidebarLogo = ref(
     "data:image/svg+xml," +
@@ -100,6 +113,7 @@ const audit = (window.audit = {
     ds,
     html,
     sidebarLogo,
+    dp,
     page,
     pages,
     pageSize,
@@ -404,6 +418,27 @@ const FakeLink = defineComponent({
                 <section data-spy="c" style="height: 120px">C</section>
             </div></template
         >
+        <template v-else-if="mode === 'datepicker'">
+            <div style="display: grid; gap: 12px; width: 320px; padding: 20px">
+                <NDatePicker
+                    v-model="dpDate"
+                    class="dp-date"
+                    aria-label="Date"
+                    :min="dpMin"
+                    :max="dpMax"
+                    :disabled="dpDisabled"
+                />
+                <NDatePicker
+                    v-model="dpDatetime"
+                    type="datetime"
+                    aria-label="When"
+                    default-time="10:30"
+                />
+                <NDatePicker v-model="dpTime" type="time" aria-label="Time" />
+                <NDatePicker v-model="dpMonth" type="month" aria-label="Month" />
+                <NDatePicker v-model="dpYear" type="year" aria-label="Year" />
+            </div>
+        </template>
         <template v-else-if="mode === 'sidebar'"
             ><NSidebar
                 :brand="{

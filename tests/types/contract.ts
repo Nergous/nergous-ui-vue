@@ -23,6 +23,7 @@ import {
     installEnterSubmit,
     NBrand,
     NSidebar,
+    NDatePicker,
     type MessagesInput,
 } from "nergous-ui-vue";
 const button: InstanceType<typeof NButton>["$props"] = {
@@ -172,3 +173,16 @@ const badBrand: InstanceType<typeof NBrand>["$props"] = {
     logo: 1,
 };
 void badBrand;
+
+h(NDatePicker, {
+    modelValue: "2026-10-06T14:30",
+    type: "datetime",
+    min: "2026-10-01",
+    minuteStep: 5,
+    "onUpdate:modelValue": (v: string) => v.slice(0, 10),
+});
+const badPicker: InstanceType<typeof NDatePicker>["$props"] = {
+    // @ts-expect-error unknown picker type
+    type: "week",
+};
+void badPicker;

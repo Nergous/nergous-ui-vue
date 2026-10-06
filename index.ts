@@ -25,6 +25,7 @@ import NRadioGroup from "./components/forms/NRadioGroup.vue";
 import NSwitch from "./components/forms/NSwitch.vue";
 import NSegmented from "./components/forms/NSegmented.vue";
 import NDropzone from "./components/forms/NDropzone.vue";
+import NDatePicker from "./components/forms/NDatePicker.vue";
 
 import NBadge from "./components/data-display/NBadge.vue";
 import NAvatar from "./components/data-display/NAvatar.vue";
@@ -118,6 +119,7 @@ export {
     NStatCard,
     NActivityRow,
     NDropzone,
+    NDatePicker,
     NEmptyState,
     NProgress,
     NSkeleton,
