@@ -5,6 +5,8 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+## v1.2.0 - 2026-10-06
+
 ### Added
 
 - `NDatePicker`: one picker for `type="date" | "datetime" | "time" | "month"
