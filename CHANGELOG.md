@@ -5,6 +5,12 @@ The project loosely follows [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+### Added
+
+- `NBrand` `logo` prop and `NSidebar` `brand.logo`: an image URL (for
+  example the site favicon) shown in the brand tile instead of the text
+  glyph. If the image fails to load, the glyph is shown again.
+
 ### Fixed
 
 - Content-sized popups (`NMultiSelect`, `NDropdown`, `NPopover`) no longer

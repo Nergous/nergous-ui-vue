@@ -250,7 +250,7 @@ keys such as `"table.selection"` build text from counts.
 
 | Component | Purpose | Key props / v-model |
 |---|---|---|
-| `NSidebar` | Collapsible sidebar | `v-model` (active id), `groups: [{label,items:[{id,label,icon,badge}]}]`, `collapsed`, `brand`, `#footer` slot |
+| `NSidebar` | Collapsible sidebar | `v-model` (active id), `groups: [{label,items:[{id,label,icon,badge}]}]`, `collapsed`, `brand: {name,sub,glyph,logo}`, `#footer` slot |
 | `NBreadcrumbs` | Location trail | `items: [{label,href?}]`, `linkAs` (router link component); last item is `aria-current="page"` |
 | `NToolbar` | List toolbar | slots `#search` (grows), default (filters), `#actions` (far end) |
 | `NFilterChips` | Active filters as removable chips | `filters: [{key,label,value}]`; `@remove(key)`, `@reset` |
@@ -258,7 +258,7 @@ keys such as `"table.selection"` build text from counts.
 | `NActionBar` | Sticky form save bar | `dirty`, `idleText`, `dirtyText`, `sticky`; actions in the default slot |
 | `NSortHandle` | Drag/keyboard grip for `useSortable` rows | `label`, `active` |
 | `NTopbar` | Top bar | `title`, `subtitle`, `@toggle` event; slots `#left`, default, `#right` |
-| `NBrand` | Logo lockup: glyph + name | `glyph`, `name`, `sub`, `size` (sm/md/lg), `showSub` (hide text for an icon-only rail) |
+| `NBrand` | Logo lockup: glyph + name | `glyph`, `logo` (image URL instead of the glyph; falls back to the glyph if it fails), `name`, `sub`, `size` (sm/md/lg), `showSub` (hide text for an icon-only rail) |
 | `NStepper` | Vertical step rail | `v-model` (active step), `steps: [{value,label,sub}]`, `completed` (explicit done-set; default = linear by index), `navLabel` |
 | `NWizard` | Stepped-form shell (create) | `v-model`, `steps`, `completed`, `title` (rail eyebrow), `progress`; scoped default slot `{step,index,count}` for the active panel, `#footer` slot `{index,count,isFirst,isLast,prev,next,goTo}` |
 | `NAnchorNav` | Section table-of-contents | `v-model` (active section), `sections: [{value,label,count}]`, `navLabel` — presentational; pair with `useScrollSpy` or use `NAnchoredForm` |

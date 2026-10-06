@@ -21,6 +21,8 @@ import {
     useHotkeys,
     useColumnVisibility,
     installEnterSubmit,
+    NBrand,
+    NSidebar,
     type MessagesInput,
 } from "nergous-ui-vue";
 const button: InstanceType<typeof NButton>["$props"] = {
@@ -162,3 +164,11 @@ createFormat("en").plural(1, { one: "#" });
 // @ts-expect-error sortable items need an id
 useSortable(() => [{ title: "A" }], () => {}, () => "");
 void [badMulti, badMessages];
+
+h(NBrand, { logo: "/favicon.svg", glyph: "A", name: "Admin" });
+h(NSidebar, { brand: { name: "Admin", glyph: "A", logo: "/favicon.svg" } });
+const badBrand: InstanceType<typeof NBrand>["$props"] = {
+    // @ts-expect-error logo is an image URL string
+    logo: 1,
+};
+void badBrand;

@@ -7,7 +7,7 @@ import { useLabels } from "../../composables/useLocale.ts";
 // NSidebar — collapsible navigation rail. v-model is the active item id;
 // v-model:collapsed toggles the narrow icon-only mode. #footer slot receives { collapsed }.
 // groups: [{ label, items: [{ id, label, icon, badge }] }]
-// brand:  { name, sub, glyph }
+// brand:  { name, sub, glyph, logo } — logo is an image URL shown instead of the glyph
 // If an item has an `href` it renders as `linkAs` (defaults to <a>); pass any
 // compatible router link component via `linkAs`. The active item is
 // driven by `modelValue` (derive it from the current route in the parent) so the
@@ -32,6 +32,7 @@ interface SidebarBrand {
     name?: string;
     sub?: string;
     glyph?: string;
+    logo?: string;
 }
 
 const props = defineProps({
@@ -88,6 +89,7 @@ function onItemClick(item: SidebarItem): void {
         <div class="n-sb__brand">
             <NBrand
                 :glyph="brand.glyph"
+                :logo="brand.logo"
                 :name="brand.name"
                 :sub="brand.sub"
                 size="md"

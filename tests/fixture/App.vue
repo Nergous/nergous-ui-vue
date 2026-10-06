@@ -51,6 +51,13 @@ const html = ref(
 // Full-preset editor pickers resolve immediately (stand-ins for a media library).
 const pickImage = async () => ({ src: "/picked.png", alt: "Picked" });
 const pickLink = async () => ({ href: "/files/doc.pdf", text: "doc.pdf" });
+// Sidebar brand logo: a valid inline SVG; tests swap it for a broken URL.
+const sidebarLogo = ref(
+    "data:image/svg+xml," +
+        encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="red"/></svg>',
+        ),
+);
 const selected = ref("a"),
     page = ref(10),
     pages = ref(3),
@@ -92,6 +99,7 @@ const spy = useScrollSpy(scroll, { offset: 60 });
 const audit = (window.audit = {
     ds,
     html,
+    sidebarLogo,
     page,
     pages,
     pageSize,
@@ -398,6 +406,11 @@ const FakeLink = defineComponent({
         >
         <template v-else-if="mode === 'sidebar'"
             ><NSidebar
+                :brand="{
+                    name: 'Fixture',
+                    glyph: 'F',
+                    logo: sidebarLogo,
+                }"
                 :groups="[
                     {
                         items: [

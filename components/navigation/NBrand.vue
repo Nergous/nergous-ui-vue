@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
+import { ref, watch } from "vue";
 
 type BrandSize = "sm" | "md" | "lg";
 
@@ -8,12 +9,15 @@ type BrandSize = "sm" | "md" | "lg";
 // the collapsed sidebar) to render only the glyph.
 // Props:
 //   glyph   — single letter/short string inside the tile (default "N")
+//   logo    — image URL shown in the tile instead of the glyph; a broken
+//             image falls back to the glyph
 //   name    — primary brand name
 //   sub     — secondary line under the name
 //   size    — "sm" | "md" | "lg" (controls glyph + type scale)
 //   showSub — toggle the name/sub block (hide for icon-only rails)
-defineProps({
+const props = defineProps({
     glyph: { type: String, default: "N" },
+    logo: { type: String, default: "" },
     name: { type: String, default: "nergous-ui-vue" },
     sub: { type: String, default: "" },
     size: {
@@ -23,17 +27,34 @@ defineProps({
     },
     showSub: { type: Boolean, default: true },
 });
+
+// A logo that failed to load shows the glyph until the URL changes.
+const logoFailed = ref(false);
+watch(
+    () => props.logo,
+    () => {
+        logoFailed.value = false;
+    },
+);
 </script>
 
 <template>
     <div class="n-brand" :class="'n-brand--' + size">
         <div
             class="n-brand__glyph"
+            :class="{ 'n-brand__glyph--logo': logo && !logoFailed }"
             :role="showSub ? undefined : 'img'"
             :aria-label="showSub ? undefined : name"
             :aria-hidden="showSub ? 'true' : undefined"
         >
-            {{ glyph }}
+            <img
+                v-if="logo && !logoFailed"
+                class="n-brand__logo"
+                :src="logo"
+                alt=""
+                @error="logoFailed = true"
+            />
+            <template v-else>{{ glyph }}</template>
         </div>
         <div v-if="showSub" class="n-brand__txt">
             <b class="n-brand__name">{{ name }}</b>
@@ -57,6 +78,16 @@ defineProps({
     background: linear-gradient(140deg, var(--accent), #4aa3ff);
     color: #fff;
     font-weight: 800;
+}
+.n-brand__glyph--logo {
+    background: none;
+}
+.n-brand__logo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: inherit;
 }
 .n-brand__txt {
     display: flex;

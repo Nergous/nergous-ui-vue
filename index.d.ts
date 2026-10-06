@@ -838,6 +838,8 @@ export declare const NSidebar: UIComponent<
             sub?: string;
             /** Short glyph text. */
             glyph?: string;
+            /** Image URL shown instead of the glyph; falls back to the glyph if it fails to load. */
+            logo?: string;
         };
         /** Element name or component used to render items with href. @defaultValue "a" */
         linkAs?: string | Component;
@@ -887,6 +889,8 @@ export declare const NTopbar: UIComponent<
 export declare const NBrand: UIComponent<{
     /** Short glyph text. @defaultValue "N" */
     glyph?: string;
+    /** Image URL shown instead of the glyph; falls back to the glyph if it fails to load. */
+    logo?: string;
     /** Primary brand name. */
     name?: string;
     /** Secondary brand line. */

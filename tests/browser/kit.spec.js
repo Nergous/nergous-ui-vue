@@ -213,6 +213,16 @@ test("sidebar links render by default, badges and breadcrumbs are accessible", a
     await load(page, "sidebar");
     await expect(page.getByRole("link", { name: "Docs" })).toHaveAttribute("href", "/docs");
     expect(await axeViolations(page)).toEqual([]);
+
+    // brand.logo replaces the glyph; a broken image brings the glyph back.
+    const tile = page.locator(".n-brand__glyph");
+    await expect(tile.locator("img.n-brand__logo")).toHaveJSProperty("complete", true);
+    expect(await tile.locator("img").evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+    await expect(tile).not.toContainText("F");
+    await page.evaluate(() => (window.audit.sidebarLogo.value = "/missing-logo.png"));
+    await expect(tile.locator("img")).toHaveCount(0);
+    await expect(tile).toHaveText("F");
+
     await load(page, "kit");
     await expect(page.locator(".n-crumbs [aria-current='page']")).toHaveText("Edit post");
     await expect(page.getByRole("link", { name: "Posts" })).toHaveAttribute("href", "/posts");
